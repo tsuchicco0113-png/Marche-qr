@@ -49,6 +49,10 @@ HTMLファイル1つで動き、サーバーもアカウント登録も要りま
 最新の Chrome / Edge / Safari / Firefox。スマートフォンでも使えます。
 入力内容はお使いのブラウザ内（localStorage）にだけ保存され、外部には送信されません。
 
+## ライセンス
+
+[MIT License](LICENSE) です。個人・商用を問わず、自由に使用・改変・再配布できます（著作権表示とライセンス文の同梱をお願いします）。
+
 ---
 
-Powered by HEXA STAGE
+Powered by [HEXA STAGE](https://hexa-stage.booth.pm/) — 滋賀県甲賀市土山町
