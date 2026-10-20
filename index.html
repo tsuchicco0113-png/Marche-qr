@@ -342,7 +342,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 
     <details class="acc" id="secPrice" data-sec="price"><summary><h2>商品と価格</h2><span class="sm" id="sm-price"></span></summary><div class="acc-body">
       <div id="priceItems" style="display:flex;flex-direction:column;gap:10px"></div>
-      <p class="hint">価格欄の右の数字は、刷る枚数です。「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。</p>
+      <p class="hint" id="priceCopiesHint">価格欄の右の数字は、刷る枚数です。「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。</p>
       <button class="btn dash" id="addPrice">＋ 商品を追加</button>
       <details style="border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px"><summary style="cursor:pointer;font-size:12px;font-weight:700">まとめて貼り付けて追加</summary>
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
@@ -446,6 +446,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button class="btn" id="printCheck">位置確認シートを印刷（普通紙で）</button>
         <p class="hint">枠線と十字だけを刷ります。本番用紙に重ねて光に透かし、線がカードの切れ目に合うまで補正してください。</p>
       </div>
+      <label class="chk" id="priceEachRow"><input type="checkbox" id="priceEach"><span style="flex:1">商品ごとにシートを分ける</span><small id="priceEachNote"></small></label>
       <label class="chk"><input type="checkbox" id="printGuide"><span style="flex:1">カードの枠線も刷る</span><small>試し刷り用</small></label>
       <label class="chk"><input type="checkbox" id="printMarks"><span style="flex:1">トンボを刷る</span><small>自分で断裁するとき</small></label>
       <p class="hint">印刷画面では「用紙サイズ：A4」「倍率：100%（実際のサイズ）」「余白：なし」を選んでください。</p>
@@ -773,7 +774,7 @@ const DEF = {
   purpose: 'shop', vcLast: '木成', vcFirst: '花子', vcLastKana: 'きなり', vcFirstKana: 'はなこ', vcTitle: '代表・デザイナー',
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 1, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 1, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 1, sold: false }],
-  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false,
+  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true,
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 let S = { ...DEF };
@@ -1044,6 +1045,8 @@ function renderPriceControls() {
       <label class="chk" style="font-size:12px"><input type="checkbox" data-pi="${i}" data-k="sold"${it.sold ? ' checked' : ''}><span>売り切れ表示</span></label>
     </div><button class="ib" data-pmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-pmv="${i},1" aria-label="下へ">▼</button><button class="ib x" data-pdel="${i}" aria-label="削除">×</button></div>`).join('');
   $('addPrice').disabled = S.priceItems.length >= MAX_PRICE;
+  document.querySelectorAll('#priceItems input[data-k=copies]').forEach(el => { el.disabled = !!S.priceEach; el.style.opacity = S.priceEach ? .4 : 1; });
+  $('priceCopiesHint').textContent = (S.priceEach ? '「商品ごとにシートを分ける」がオンのため、枚数欄は使いません（1商品ごとにA4 1枚を同じカードで埋めます）。' : '価格欄の右の数字は、刷る枚数です。') + '「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。';
   $('priceSizes').innerHTML = PSIZES.map(p => `<button data-psize="${p.id}" class="${S.priceSize === p.id ? 'on' : ''}">${p.label}</button>`).join('');
   const cu = S.priceSize === 'custom';
   $('priceOrientRow').hidden = cu; $('priceCustomRow').hidden = !cu;
@@ -1204,7 +1207,7 @@ async function renderPreview() {
   // price cards
   if (isPrice()) {
     const [pw, ph] = priceDims(), list = priceItemsClean(), sc = Math.max(0.5, Math.min(1.6, 330 / (pw * 3.7795), 440 / (ph * 3.7795)));
-    $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div>${priceCopies(it) > 1 ? `<small>${priceCopies(it)}枚</small>` : ''}</div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
+    $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div><button class="btn" data-pprint="${list.indexOf(it)}">この商品を1シート印刷（${sheetGeom().cols * sheetGeom().rows}枚）</button>${!S.priceEach && priceCopies(it) > 1 ? `<small>${priceCopies(it)}枚</small>` : ''}</div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
     $('priceInfo').textContent = `${pw} × ${ph} mm・${list.length}種／${priceExpanded().length}枚`;
   }
   // card
@@ -1239,6 +1242,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
   const ds = t.dataset;
   if (ds.purpose) { S.purpose = ds.purpose; return renderAll(); }
+  if (ds.pprint != null) return doPrint('cards', +ds.pprint);
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
   if (ds.porient) { S.priceOrient = ds.porient; return renderAll(); }
   if (ds.playout) { S.priceLayout = ds.playout; return renderAll(); }
@@ -1276,6 +1280,7 @@ $('priceBulkAdd').onclick = () => {
   $('priceBulk').value = ''; renderAll();
   toast(rows.length > room ? `${room}件を追加しました（上限${MAX_PRICE}件）` : `${rows.length}件を追加しました`);
 };
+$('priceEach').onchange = e => { S.priceEach = e.target.checked; renderAll(); };
 ['priceFrame', 'priceShop', 'priceQr'].forEach(k => $(k).onchange = e => { S[k] = e.target.checked; renderAll(); });
 ['priceW', 'priceH'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value === '' ? '' : Number(e.target.value); renderPreview(); }));
 $('addLink').onclick = () => { if (S.links.length < MAX_LINKS) { S.links.push({ label: '', url: '' }); renderAll(); } };
@@ -1404,14 +1409,17 @@ $('open').onclick = () => {
    91×55mm × 2列5段, 用紙の上下11mm・左右14mm, カード間の隙間なし
    ========================================================= */
 const SHEET = { cols: 2, rows: 5, w: 91, h: 55, ml: 14, mt: 11 };
-function buildSheet(mode) {   // mode: 'cards' | 'check'  → HTML of every page
+function buildSheet(mode, only) {   // mode: 'cards' | 'check'; only: 商品の番号（その商品だけ1シート） → HTML of every page
   const g = sheetGeom(), { cols, rows, w, h, ml, mt } = g, per = cols * rows, ox = S.printX || 0, oy = S.printY || 0;
   // 名刺サイズの縦長カード (55×91) は90°回して 91×55 のマスに刷る
   const rot = html => g.rot ? `<div style="position:absolute;left:${(w - h) / 2}mm;top:${(h - w) / 2}mm;width:${h}mm;height:${w}mm;transform:rotate(-90deg);transform-origin:50% 50%">${html}</div>` : html;
-  let cards = [];
+  let chunks = [];
   if (mode === 'cards') {
-    if (isPrice()) { const [pw, ph] = priceDims(); cards = priceExpanded().map(it => rot(priceCardHtml(it, CUR.qr, pw, ph))); }
-    else cards = Array(per).fill(rot(cardHtml(CUR.qr)));
+    if (isPrice()) {
+      const [pw, ph] = priceDims(), one = it => rot(priceCardHtml(it, CUR.qr, pw, ph));
+      if (only != null || S.priceEach) chunks = (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).map(it => Array(per).fill(one(it)));   // 1商品＝1シート（同じカードで全面）
+      else { const cards = priceExpanded().map(one); for (let k = 0; k < cards.length; k += per) chunks.push(cards.slice(k, k + per)); }
+    } else chunks = [Array(per).fill(rot(cardHtml(CUR.qr)))];
   }
   let d = '';
   if (mode === 'check' || S.printGuide) {
@@ -1425,8 +1433,6 @@ function buildSheet(mode) {   // mode: 'cards' | 'check'  → HTML of every page
   }
   const note = mode === 'check' ? `<div style="position:absolute;left:${ml}mm;top:${mt + h * rows + 3}mm;font:7pt 'Zen Kaku Gothic New',sans-serif;color:#555">位置確認シート　補正 X ${fmtMm(ox)} / Y ${fmtMm(oy)}　— 本番用紙に重ねて光に透かし、線とカードの切れ目が合うか確認</div>` : '';
   const svg = d ? `<svg class="marks" viewBox="0 0 210 297"><path d="${d}" stroke="#000" stroke-width="0.15" fill="none"/></svg>` : '';
-  const chunks = [];
-  for (let k = 0; k < cards.length; k += per) chunks.push(cards.slice(k, k + per));
   if (!chunks.length) chunks.push([]);
   return chunks.map(list => {
     let inner = '';
@@ -1435,9 +1441,9 @@ function buildSheet(mode) {   // mode: 'cards' | 'check'  → HTML of every page
   }).join('');
 }
 const fmtMm = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1) + 'mm';
-function doPrint(mode) {
-  if (isPrice() && mode === 'cards' && !priceExpanded().length) return toast('商品名か価格を入れてください');
-  $('print').innerHTML = buildSheet(mode);
+function doPrint(mode, only) {
+  if (isPrice() && mode === 'cards' && !priceItemsClean().length) return toast('商品名か価格を入れてください');
+  $('print').innerHTML = buildSheet(mode, only);
   const prev = document.title; document.title = fileBase() + (mode === 'check' ? '_位置確認' : isPrice() ? '_プライスカード' : '_名刺');
   const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
   window.addEventListener('afterprint', restore);
@@ -1448,15 +1454,19 @@ function syncPrintInfo() {
   if (!isPrice()) {
     $('printH').textContent = '印刷（A4 10面 名刺サイズ）'; $('printFmt').textContent = '品番 51072'; $('printFmt2').textContent = 'フォーマット F10A4-1';
     $('printInfo').textContent = '91×55mm × 10面（2列×5段）・用紙の上下11mm／左右14mm。縦型レイアウトは90°回して同じ用紙に刷ります。';
-    $('printLabel').textContent = '名刺を印刷（A4 10面）'; return;
+    $('printLabel').textContent = '名刺を印刷（A4 10面）'; $('priceEachRow').hidden = true; return;
   }
+  $('priceEachRow').hidden = false;
   const g = sheetGeom(), [pw, ph] = priceDims(), per = g.cols * g.rows, n = priceExpanded().length, pages = Math.max(1, Math.ceil(n / per));
   const meishi = S.priceSize === 'meishi';
   $('printH').textContent = meishi ? '印刷（A4 10面 名刺サイズ）' : `印刷（A4 ${per}面 ${pw}×${ph}mm）`;
   $('printFmt').textContent = meishi ? '品番 51072' : `${pw}×${ph}mm`;
   $('printFmt2').textContent = meishi ? 'フォーマット F10A4-1' : `A4に ${g.cols}列×${g.rows}段`;
   $('printInfo').textContent = meishi ? '名刺サイズのミシン目入り用紙（91×55mm×10面）にそのまま刷れます。縦向きは90°回して刷ります。' : '普通紙や厚紙にA4へ均等に並べて刷ります。「トンボを刷る」を入れると、切り分けの目安になります。';
-  $('printLabel').textContent = n ? `プライスカードを印刷（${n}枚・${pages}ページ）` : 'プライスカードを印刷';
+  const nItems = priceItemsClean().length;
+  $('priceEachNote').textContent = `1商品＝A4 1枚（${per}枚）`;
+  $('priceEach').checked = !!S.priceEach;
+  $('printLabel').textContent = !nItems ? 'プライスカードを印刷' : S.priceEach ? `プライスカードを印刷（${nItems}商品・${nItems}ページ／各${per}枚）` : `プライスカードを印刷（${n}枚・${pages}ページ）`;
 }
 $('printBtn').onclick = () => doPrint('cards');
 $('printCheck').onclick = () => doPrint('check');
@@ -1481,7 +1491,7 @@ const KEYS_STR = ['vcCta', 'brand', 'bio', 'sns', 'url', 'qrLabel', 'base', 'log
 const KEYS_BOOL = ['logoQr', 'logoCard', 'logoPage', 'vcPhotoVcf', 'vcPhotoQr'];
 function exportObj(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceShop', 'priceQr', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceShop', 'priceQr', 'priceEach', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceItems = S.priceItems.map(it => ({ name: it.name || '', price: it.price || '', note: it.note || '', copies: priceCopies(it), sold: !!it.sold }));
@@ -1517,7 +1527,7 @@ function applyImport(d) {
   pick('priceLayout', ['center', 'left'].includes(d.priceLayout) ? d.priceLayout : undefined);
   pick('priceUnit', ['yen', 'en'].includes(d.priceUnit) ? d.priceUnit : undefined);
   pick('priceTax', ['in', 'ex', 'none'].includes(d.priceTax) ? d.priceTax : undefined);
-  ['priceFrame', 'priceShop', 'priceQr'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
+  ['priceFrame', 'priceShop', 'priceQr', 'priceEach'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
   ['priceW', 'priceH'].forEach(k => pick(k, Number.isFinite(d[k]) ? Math.max(25, Math.min(k === 'priceW' ? 190 : 280, d[k])) : undefined));
   if (Array.isArray(d.priceItems)) n.priceItems = d.priceItems.filter(it => it && typeof it === 'object').slice(0, MAX_PRICE).map(it => ({ name: str(it.name, 100) || '', price: str(it.price, 30) || '', note: str(it.note, 160) || '', copies: Number.isFinite(it.copies) ? Math.max(1, Math.min(30, Math.round(it.copies))) : 1, sold: it.sold === true }));
   pick('layout', LAYOUTS.some(l => l.id === d.layout) ? d.layout : undefined);
