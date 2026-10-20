@@ -336,6 +336,11 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <label class="chk"><input type="checkbox" id="vcPhotoVcf"><span style="flex:1">連絡先ファイル（.vcf）・共有に入れる</span><small>おすすめ</small></label>
         <label class="chk"><input type="checkbox" id="vcPhotoQr"><span style="flex:1">QRコードにも入れる</span><small>実験的</small></label>
         <p class="hint" id="vcPhotoInfo"></p>
+        <div class="grid3" style="grid-template-columns:1fr 1fr">
+          <button class="btn" id="vcfAndroid" title="Androidで写真が入らないとき">Android互換の.vcf</button>
+          <button class="btn" id="iconSave" title="連絡先アプリで写真に設定する用">アイコン画像を保存</button>
+        </div>
+        <p class="hint">Androidで写真が付かないときは「Android互換の.vcf」を試してください。それでも付かない機種では、「アイコン画像を保存」した画像を、連絡先アプリで写真に設定してください。</p>
       </div>
       <p class="hint">屋号は「基本情報」の屋号が会社名として登録されます。空欄の項目は入りません。項目が少ないほどQRが粗くなり読み取りやすくなります。</p>
     </div></details>
@@ -892,11 +897,27 @@ const effLayout = () => isBiz() && /^photo/.test(S.layout) ? 'std' : S.layout;
 
 /* vCard 3.0 (UTF-8) — read by iPhone camera and Android camera/Lens */
 const vEsc = v => String(v).replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
-function buildVcard(photoB64) {
+function buildVcard(photoB64, ver) {
   const c = k => clean(S[k]).replace(/\s*\n\s*/g, ' ');
   const last = c('vcLast'), first = c('vcFirst'), org = clean(S.brand);
   const fn = [last, first].filter(Boolean).join(' ') || org;
   if (!fn) return '';
+  if (ver === '2.1') {   // Android互換：AndroidのOS標準が最初から読める形式（vCard 2.1）
+    const e = v => String(v).replace(/\s*\n\s*/g, ' ').replace(/;/g, '\;'), T = ';CHARSET=UTF-8';
+    const L = ['BEGIN:VCARD', 'VERSION:2.1', `N${T}:${e(last)};${e(first)};;;`, `FN${T}:${e(fn)}`];
+    if (c('vcLastKana')) L.push(`X-PHONETIC-LAST-NAME${T}:` + e(c('vcLastKana')));
+    if (c('vcFirstKana')) L.push(`X-PHONETIC-FIRST-NAME${T}:` + e(c('vcFirstKana')));
+    if (org) L.push(`ORG${T}:` + e(org));
+    if (c('vcTitle')) L.push(`TITLE${T}:` + e(c('vcTitle')));
+    if (c('vcTel')) L.push('TEL;CELL:' + c('vcTel').replace(/[^\d+\-() ]/g, ''));
+    if (c('vcEmail')) L.push('EMAIL;INTERNET:' + c('vcEmail'));
+    if (c('vcUrl')) L.push('URL:' + fullUrl(c('vcUrl')));
+    if (c('vcAdr')) L.push(`ADR;WORK${T}:;;` + e(c('vcAdr')) + ';;;;');
+    if (clean(S.vcNote)) L.push(`NOTE${T}:` + e(clean(S.vcNote)));
+    if (photoB64) { L.push('PHOTO;ENCODING=BASE64;JPEG:'); for (let i = 0; i < photoB64.length; i += 76) L.push(' ' + photoB64.slice(i, i + 76)); L.push(''); }
+    L.push('END:VCARD');
+    return L.join('\r\n');
+  }
   const L = ['BEGIN:VCARD', 'VERSION:3.0', `N:${vEsc(last)};${vEsc(first)};;;`, `FN:${vEsc(fn)}`];
   if (c('vcLastKana')) L.push('X-PHONETIC-LAST-NAME:' + vEsc(c('vcLastKana')));
   if (c('vcFirstKana')) L.push('X-PHONETIC-FIRST-NAME:' + vEsc(c('vcFirstKana')));
@@ -1392,13 +1413,21 @@ $('dlPng').onclick = () => {
 };
 $('copy').onclick = async () => { if (!CUR.target) return; try { await navigator.clipboard.writeText(CUR.target); toast(isBiz() ? '連絡先データ（vCard）をコピーしました' : 'URLをコピーしました（NFC Toolsに貼り付け）'); } catch (e) { toast('コピーできませんでした'); } };
 /* .vcf with a full-size icon (not limited by QR capacity) */
-async function vcfFile() {
+async function vcfFile(ver) {
   const photo = S.vcPhotoVcf && effLogo() ? await logoJpeg(256, 0.85) : '';
-  const v = buildVcard(photo || '');
+  const v = buildVcard(photo || '', ver);
   if (!v) { toast('姓・名か屋号を入れてください'); return null; }
   const nm = ([clean(S.vcLast), clean(S.vcFirst)].join('') || fileBase()).replace(/[\\/:*?"<>|\s]+/g, '_');
-  return new File([v + '\r\n'], nm + '.vcf', { type: 'text/vcard' });
+  return new File([v + '\r\n'], nm + (ver === '2.1' ? '_android' : '') + '.vcf', { type: 'text/vcard' });
 }
+$('vcfAndroid').onclick = () => { if (!effLogo()) toast('ロゴを設定してください（なくても連絡先ファイルは保存できます）'); vcfFile('2.1').then(f => { if (!f) return; dl(f, f.name); toast('Android互換の連絡先ファイルを保存しました'); }); };
+$('iconSave').onclick = async () => {
+  if (!effLogo()) return toast('ロゴを設定してください');
+  const b64 = await logoJpeg(512, 0.92);
+  if (!b64) return toast('このロゴ画像は外部サイトの制限で読み込めません');
+  const bin = atob(b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  dl(new Blob([u8], { type: 'image/jpeg' }), fileBase() + '_icon.jpg'); toast('アイコン用の画像を保存しました');
+};
 $('share').onclick = async () => {
   const f = await vcfFile(); if (!f) return;
   try { await navigator.share({ files: [f], title: f.name }); } catch (e) { if (e && e.name !== 'AbortError') toast('共有できませんでした'); }
