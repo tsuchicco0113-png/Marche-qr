@@ -228,20 +228,20 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .card.pc .pc-frame{position:absolute;inset:calc(var(--u)*2.2mm);border:.25mm solid currentColor;opacity:.5;pointer-events:none}
 .card.pc .pc-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.6mm)}
 .card.pc.left .pc-body{align-items:flex-start;text-align:left}
-.card.pc .pc-name{font-size:calc(var(--u)*11pt);font-weight:700;line-height:1.3;letter-spacing:.05em;word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
+.card.pc .pc-name{font-size:calc(var(--u)*var(--fn,1)*11pt);font-weight:700;line-height:1.3;letter-spacing:.05em;word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
 .card.pc .pc-price{display:flex;align-items:baseline;justify-content:center;gap:calc(var(--u)*.6mm);font-weight:700;line-height:1.05;max-width:100%;flex-wrap:wrap}
 .card.pc.left .pc-price{justify-content:flex-start}
-.card.pc .pc-price .num{font-size:calc(var(--u)*26pt);letter-spacing:.02em;font-variant-numeric:tabular-nums}
-.card.pc .pc-price .num.m{font-size:calc(var(--u)*20pt)}
-.card.pc .pc-price .num.s{font-size:calc(var(--u)*14pt)}
-.card.pc .pc-price .pre,.card.pc .pc-price .post{font-size:calc(var(--u)*13pt)}
-.card.pc .pc-price .tax{font-size:calc(var(--u)*6.5pt);font-weight:400;margin-left:calc(var(--u)*1mm);opacity:.85}
-.card.pc .pc-note{font-size:calc(var(--u)*6.8pt);line-height:1.5;opacity:.85;white-space:pre-line;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
+.card.pc .pc-price .num{font-size:calc(var(--u)*var(--fp,1)*26pt);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.card.pc .pc-price .num.m{font-size:calc(var(--u)*var(--fp,1)*20pt)}
+.card.pc .pc-price .num.s{font-size:calc(var(--u)*var(--fp,1)*14pt)}
+.card.pc .pc-price .pre,.card.pc .pc-price .post{font-size:calc(var(--u)*var(--fp,1)*13pt)}
+.card.pc .pc-price .tax{font-size:calc(var(--u)*var(--fp,1)*6.5pt);font-weight:400;margin-left:calc(var(--u)*1mm);opacity:.85}
+.card.pc .pc-note{font-size:calc(var(--u)*var(--fno,1)*6.8pt);line-height:1.5;opacity:.85;white-space:pre-line;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
 .card.pc .pc-foot{flex:none;display:flex;align-items:flex-end;justify-content:space-between;gap:calc(var(--u)*2mm);min-height:calc(var(--u)*5mm)}
 .card.pc .pc-foot.noqr{justify-content:center}
 .card.pc.left .pc-foot.noqr{justify-content:flex-start}
-.card.pc .pc-who{display:flex;align-items:center;gap:calc(var(--u)*1.5mm);font-size:calc(var(--u)*5.6pt);letter-spacing:.12em;opacity:.85;min-width:0}
-.card.pc .pc-who img{height:calc(var(--u)*5mm);max-width:calc(var(--u)*16mm);object-fit:contain}
+.card.pc .pc-who{display:flex;align-items:center;gap:calc(var(--u)*1.5mm);font-size:calc(var(--u)*var(--fs,1)*5.6pt);letter-spacing:.12em;opacity:.85;min-width:0}
+.card.pc .pc-who img{height:calc(var(--u)*var(--fs,1)*5mm);max-width:calc(var(--u)*var(--fs,1)*16mm);object-fit:contain}
 .card.pc .pc-qr{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.6mm)}
 .card.pc .pc-qr .qrl{font-size:calc(var(--u)*4.6pt)}
 .card.pc.sold .pc-body{opacity:.3}
@@ -369,6 +369,14 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <span class="sub-h">価格の表記</span>
       <div class="seg" style="grid-template-columns:1fr 1fr"><button data-punit="yen">¥1,200</button><button data-punit="en">1,200円</button></div>
       <div class="seg" style="grid-template-columns:repeat(3,1fr)"><button data-ptax="in">税込</button><button data-ptax="ex">税抜</button><button data-ptax="none">表記なし</button></div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;font-weight:700">文字の大きさ</span><button class="txtbtn" id="priceFsReset" style="padding:0;font-size:11px">リセット</button></div>
+        <div class="rng"><span style="width:52px">商品名</span><input type="range" id="fsName" min="50" max="180" step="5"><output id="fsNameO"></output></div>
+        <div class="rng"><span style="width:52px">価格</span><input type="range" id="fsPrice" min="50" max="180" step="5"><output id="fsPriceO"></output></div>
+        <div class="rng"><span style="width:52px">補足</span><input type="range" id="fsNote" min="50" max="220" step="5"><output id="fsNoteO"></output></div>
+        <div class="rng"><span style="width:52px">店名</span><input type="range" id="fsShop" min="50" max="220" step="5"><output id="fsShopO"></output></div>
+        <p class="hint">100%が標準です。大きくしすぎると、はみ出した部分は切れます。</p>
+      </div>
       <label class="chk"><input type="checkbox" id="priceFrame"><span style="flex:1">細い枠線を入れる</span></label>
       <label class="chk"><input type="checkbox" id="priceShop"><span style="flex:1">店名・ロゴを小さく入れる</span></label>
       <label class="chk"><input type="checkbox" id="priceQr"><span style="flex:1">お店のQRコードを入れる</span><small>SNS・ショップへ</small></label>
@@ -773,12 +781,13 @@ const DEF = {
   vcCta: '', vcPhotoVcf: true, vcPhotoQr: false,
   purpose: 'shop', vcLast: '木成', vcFirst: '花子', vcLastKana: 'きなり', vcFirstKana: 'はなこ', vcTitle: '代表・デザイナー',
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
-  priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 1, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 1, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 1, sold: false }],
-  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true,
+  priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
+  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceV: 2,
+  priceFs: { name: 100, price: 100, note: 100, shop: 100 },
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 let S = { ...DEF };
-try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) S = { ...DEF, ...sv, links: Array.isArray(sv.links) ? sv.links : DEF.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems : DEF.priceItems }; } catch (e) {}
+try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) S = { ...DEF, ...sv, priceFs: { ...DEF.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : DEF.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV === 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : DEF.priceItems, priceV: 2 }; } catch (e) {}
 
 S.bgUrl = '';
 let storeMsg = '';
@@ -843,8 +852,11 @@ function priceDims() {
 }
 const priceU = (pw, ph) => Math.max(0.6, Math.min(1.6, (Math.min(pw / 91, ph / 55) + Math.sqrt(pw * ph / 5005)) / 2));
 const priceItemsClean = () => S.priceItems.filter(it => clean(it.name) || clean(it.price));
-const priceCopies = it => Math.max(1, Math.min(30, Math.round(+it.copies) || 1));
-const priceExpanded = () => priceItemsClean().flatMap(it => Array(priceCopies(it)).fill(it));
+const priceCopies = it => { const n = Math.round(+it.copies); return n >= 1 ? Math.min(n, 100) : 0; };   // 0 = 全面（1シート分）
+const pricePer = () => { const g = sheetGeom(); return Math.max(1, g.cols * g.rows); };
+const priceQty = it => S.priceEach ? (priceCopies(it) || pricePer()) : (priceCopies(it) || 1);   // その商品を刷る枚数
+const priceExpanded = () => priceItemsClean().flatMap(it => Array(priceQty(it)).fill(it));
+const pricePageCount = () => S.priceEach ? priceItemsClean().reduce((a, it) => a + Math.ceil(priceQty(it) / pricePer()), 0) : Math.max(1, Math.ceil(priceExpanded().length / pricePer()));
 function priceParts(raw) {
   const t = clean(raw).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[，、]/g, ',');
   if (!t) return null;
@@ -864,7 +876,7 @@ function priceCardHtml(it, q, pw, ph, extra) {
   const who = S.priceShop && (logo || clean(S.brand)) ? `<div class="pc-who">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : ''}<span>${esc(clean(S.brand))}</span></div>` : '';
   const qrBox = S.priceQr && q ? `<div class="pc-qr">${qrSvg(q, col, 0, '', qrBg).replace('<svg ', '<svg style="width:calc(var(--u)*13mm);height:calc(var(--u)*13mm);flex:none" ')}${clean(S.qrLabel) ? `<div class="qrl">${esc(clean(S.qrLabel))}</div>` : ''}</div>` : '';
   const foot = who || qrBox ? `<div class="pc-foot${qrBox ? '' : ' noqr'}">${who}${qrBox}</div>` : '';
-  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--u:${u.toFixed(3)};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
+  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
     ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}</div>${foot}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
 }
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
@@ -1040,13 +1052,15 @@ function linkPageHtml(c, imgBase) {
 function renderPriceControls() {
   $('priceItems').innerHTML = S.priceItems.map((it, i) => `<div class="linkrow"><div class="col">
       <input class="in" data-pi="${i}" data-k="name" placeholder="商品名" value="${esc(it.name)}">
-      <div style="display:flex;gap:4px"><input class="in" data-pi="${i}" data-k="price" placeholder="価格（例 2800）" inputmode="numeric" value="${esc(it.price)}" style="flex:1"><input class="in" data-pi="${i}" data-k="copies" type="number" min="1" max="30" value="${priceCopies(it)}" title="刷る枚数" aria-label="刷る枚数" style="width:64px"></div>
+      <div style="display:flex;gap:4px"><input class="in" data-pi="${i}" data-k="price" placeholder="価格（例 2800）" inputmode="numeric" value="${esc(it.price)}" style="flex:1"><input class="in" data-pi="${i}" data-k="copies" type="number" min="1" max="100" value="${priceCopies(it) || ''}" placeholder="全面" title="刷る枚数（空欄＝シート全面）" aria-label="刷る枚数" style="width:70px"></div>
       <input class="in" data-pi="${i}" data-k="note" placeholder="補足（素材・サイズなど）" value="${esc(it.note)}">
       <label class="chk" style="font-size:12px"><input type="checkbox" data-pi="${i}" data-k="sold"${it.sold ? ' checked' : ''}><span>売り切れ表示</span></label>
     </div><button class="ib" data-pmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-pmv="${i},1" aria-label="下へ">▼</button><button class="ib x" data-pdel="${i}" aria-label="削除">×</button></div>`).join('');
   $('addPrice').disabled = S.priceItems.length >= MAX_PRICE;
-  document.querySelectorAll('#priceItems input[data-k=copies]').forEach(el => { el.disabled = !!S.priceEach; el.style.opacity = S.priceEach ? .4 : 1; });
-  $('priceCopiesHint').textContent = (S.priceEach ? '「商品ごとにシートを分ける」がオンのため、枚数欄は使いません（1商品ごとにA4 1枚を同じカードで埋めます）。' : '価格欄の右の数字は、刷る枚数です。') + '「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。';
+  $('priceCopiesHint').textContent = S.priceEach
+    ? '価格欄の右は刷る枚数です。空欄なら、その商品でシート全面（' + pricePer() + '枚）を埋めます。枚数を入れると、その枚数だけ刷ります。'
+    : '価格欄の右は刷る枚数です。空欄は1枚。商品を続けて並べて刷ります。';
+  $('priceCopiesHint').textContent += '「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。';
   $('priceSizes').innerHTML = PSIZES.map(p => `<button data-psize="${p.id}" class="${S.priceSize === p.id ? 'on' : ''}">${p.label}</button>`).join('');
   const cu = S.priceSize === 'custom';
   $('priceOrientRow').hidden = cu; $('priceCustomRow').hidden = !cu;
@@ -1056,6 +1070,7 @@ function renderPriceControls() {
   document.querySelectorAll('[data-ptax]').forEach(b => b.classList.toggle('on', b.dataset.ptax === S.priceTax));
   $('priceFrame').checked = !!S.priceFrame; $('priceShop').checked = !!S.priceShop; $('priceQr').checked = !!S.priceQr;
   $('priceQrHint').hidden = !S.priceQr;
+  [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => { $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%'; });
   const [pw, ph] = priceDims(), per = (a, b) => S.priceSize === 'meishi' ? 10 : Math.floor(198 / a) * Math.floor(285 / b), now = per(pw, ph), alt = per(ph, pw);
   $('priceSizeHint').textContent = `A4 1ページに ${now} 枚。` + (!cu && alt > now ? `向きを変えると ${alt} 枚になります。` : '') + (S.priceSize === 'meishi' ? '（名刺サイズのミシン目入り用紙 品番51072に合わせた割り付けです）' : '');
 }
@@ -1207,7 +1222,7 @@ async function renderPreview() {
   // price cards
   if (isPrice()) {
     const [pw, ph] = priceDims(), list = priceItemsClean(), sc = Math.max(0.5, Math.min(1.6, 330 / (pw * 3.7795), 440 / (ph * 3.7795)));
-    $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div><button class="btn" data-pprint="${list.indexOf(it)}">この商品を1シート印刷（${sheetGeom().cols * sheetGeom().rows}枚）</button>${!S.priceEach && priceCopies(it) > 1 ? `<small>${priceCopies(it)}枚</small>` : ''}</div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
+    $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div><button class="btn" data-pprint="${list.indexOf(it)}">この商品だけ印刷（${priceCopies(it) || pricePer()}枚）</button></div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
     $('priceInfo').textContent = `${pw} × ${ph} mm・${list.length}種／${priceExpanded().length}枚`;
   }
   // card
@@ -1268,18 +1283,20 @@ $('links').addEventListener('input', e => { const i = e.target.dataset.i; if (i 
 $('priceItems').addEventListener('input', e => {
   const t = e.target, i = t.dataset.pi; if (i == null) return;
   const it = S.priceItems[+i], k = t.dataset.k; if (!it) return;
-  it[k] = k === 'sold' ? t.checked : k === 'copies' ? Math.max(1, Math.min(30, Math.round(+t.value) || 1)) : t.value;
+  it[k] = k === 'sold' ? t.checked : k === 'copies' ? (t.value === '' ? 0 : Math.max(1, Math.min(100, Math.round(+t.value) || 1))) : t.value;
   renderPreview();
 });
-$('addPrice').onclick = () => { if (S.priceItems.length < MAX_PRICE) { S.priceItems.push({ name: '', price: '', note: '', copies: 1, sold: false }); renderAll(); } };
+$('addPrice').onclick = () => { if (S.priceItems.length < MAX_PRICE) { S.priceItems.push({ name: '', price: '', note: '', copies: 0, sold: false }); renderAll(); } };
 $('priceBulkAdd').onclick = () => {
   const rows = $('priceBulk').value.split(/\r?\n/).map(l => l.split(/\t|,|、|，/).map(x => x.trim())).map(r => { if (/^\d{1,3}$/.test(r[1]) && /^\d{3}$/.test(r[2] || '')) r.splice(1, 2, r[1] + r[2]); return r; }).filter(r => r[0] || r[1]);
   if (!rows.length) return toast('追加する行がありません');
   const room = MAX_PRICE - S.priceItems.length;
-  rows.slice(0, room).forEach(r => S.priceItems.push({ name: r[0] || '', price: r[1] || '', note: r.slice(2).join(' '), copies: 1, sold: false }));
+  rows.slice(0, room).forEach(r => S.priceItems.push({ name: r[0] || '', price: r[1] || '', note: r.slice(2).join(' '), copies: 0, sold: false }));
   $('priceBulk').value = ''; renderAll();
   toast(rows.length > room ? `${room}件を追加しました（上限${MAX_PRICE}件）` : `${rows.length}件を追加しました`);
 };
+[['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
+$('priceFsReset').onclick = () => { S.priceFs = { name: 100, price: 100, note: 100, shop: 100 }; renderAll(); };
 $('priceEach').onchange = e => { S.priceEach = e.target.checked; renderAll(); };
 ['priceFrame', 'priceShop', 'priceQr'].forEach(k => $(k).onchange = e => { S[k] = e.target.checked; renderAll(); });
 ['priceW', 'priceH'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value === '' ? '' : Number(e.target.value); renderPreview(); }));
@@ -1417,7 +1434,7 @@ function buildSheet(mode, only) {   // mode: 'cards' | 'check'; only: 商品の�
   if (mode === 'cards') {
     if (isPrice()) {
       const [pw, ph] = priceDims(), one = it => rot(priceCardHtml(it, CUR.qr, pw, ph));
-      if (only != null || S.priceEach) chunks = (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).map(it => Array(per).fill(one(it)));   // 1商品＝1シート（同じカードで全面）
+      if (only != null || S.priceEach) (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).forEach(it => { const n = priceCopies(it) || per, c = one(it); for (let k = 0; k < n; k += per) chunks.push(Array(Math.min(per, n - k)).fill(c)); });   // 1商品ごとに新しいシート
       else { const cards = priceExpanded().map(one); for (let k = 0; k < cards.length; k += per) chunks.push(cards.slice(k, k + per)); }
     } else chunks = [Array(per).fill(rot(cardHtml(CUR.qr)))];
   }
@@ -1463,10 +1480,10 @@ function syncPrintInfo() {
   $('printFmt').textContent = meishi ? '品番 51072' : `${pw}×${ph}mm`;
   $('printFmt2').textContent = meishi ? 'フォーマット F10A4-1' : `A4に ${g.cols}列×${g.rows}段`;
   $('printInfo').textContent = meishi ? '名刺サイズのミシン目入り用紙（91×55mm×10面）にそのまま刷れます。縦向きは90°回して刷ります。' : '普通紙や厚紙にA4へ均等に並べて刷ります。「トンボを刷る」を入れると、切り分けの目安になります。';
-  const nItems = priceItemsClean().length;
-  $('priceEachNote').textContent = `1商品＝A4 1枚（${per}枚）`;
+  const nItems = priceItemsClean().length, pg = pricePageCount();
+  $('priceEachNote').textContent = `1商品ごとに新しいA4`;
   $('priceEach').checked = !!S.priceEach;
-  $('printLabel').textContent = !nItems ? 'プライスカードを印刷' : S.priceEach ? `プライスカードを印刷（${nItems}商品・${nItems}ページ／各${per}枚）` : `プライスカードを印刷（${n}枚・${pages}ページ）`;
+  $('printLabel').textContent = !nItems ? 'プライスカードを印刷' : `プライスカードを印刷（${priceExpanded().length}枚・${pg}ページ）`;
 }
 $('printBtn').onclick = () => doPrint('cards');
 $('printCheck').onclick = () => doPrint('check');
@@ -1494,6 +1511,7 @@ function exportObj(withImg) {
   ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceShop', 'priceQr', 'priceEach', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
+  o.data.priceFs = { ...S.priceFs };
   o.data.priceItems = S.priceItems.map(it => ({ name: it.name || '', price: it.price || '', note: it.note || '', copies: priceCopies(it), sold: !!it.sold }));
   if (withImg) { o.data.logo = S.logo || null; o.data.photo = S.photo || null; }
   return o;
@@ -1529,7 +1547,8 @@ function applyImport(d) {
   pick('priceTax', ['in', 'ex', 'none'].includes(d.priceTax) ? d.priceTax : undefined);
   ['priceFrame', 'priceShop', 'priceQr', 'priceEach'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
   ['priceW', 'priceH'].forEach(k => pick(k, Number.isFinite(d[k]) ? Math.max(25, Math.min(k === 'priceW' ? 190 : 280, d[k])) : undefined));
-  if (Array.isArray(d.priceItems)) n.priceItems = d.priceItems.filter(it => it && typeof it === 'object').slice(0, MAX_PRICE).map(it => ({ name: str(it.name, 100) || '', price: str(it.price, 30) || '', note: str(it.note, 160) || '', copies: Number.isFinite(it.copies) ? Math.max(1, Math.min(30, Math.round(it.copies))) : 1, sold: it.sold === true }));
+  if (d.priceFs && typeof d.priceFs === 'object') n.priceFs = Object.fromEntries(['name', 'price', 'note', 'shop'].map(k => [k, Number.isFinite(d.priceFs[k]) ? Math.max(50, Math.min(220, Math.round(d.priceFs[k]))) : S.priceFs[k]]));
+  if (Array.isArray(d.priceItems)) n.priceItems = d.priceItems.filter(it => it && typeof it === 'object').slice(0, MAX_PRICE).map(it => ({ name: str(it.name, 100) || '', price: str(it.price, 30) || '', note: str(it.note, 160) || '', copies: Number.isFinite(it.copies) && it.copies >= 1 ? Math.min(100, Math.round(it.copies)) : 0, sold: it.sold === true }));
   pick('layout', LAYOUTS.some(l => l.id === d.layout) ? d.layout : undefined);
   pick('logoSrc', ['file', 'url'].includes(d.logoSrc) ? d.logoSrc : undefined);
   pick('font', int(d.font, FONTS.length)); pick('ink', int(d.ink, INKS.length));
