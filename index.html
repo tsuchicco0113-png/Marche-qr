@@ -245,6 +245,9 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .card.pc .pc-qr{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.6mm)}
 .card.pc .pc-qr .qrl{font-size:calc(var(--u)*4.6pt)}
 .card.pc.sold .pc-body{opacity:.3}
+.card.pc .pc-guide{width:100%;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*7mm);padding:calc(var(--u)*2mm) calc(var(--u)*3mm) 0}
+.card.pc .pc-guide i{display:block;width:100%;border-bottom:.25mm dotted currentColor;opacity:.45}
+.card.pc .pc-guide i.pr{width:70%;margin-top:calc(var(--u)*2mm)}
 .card.pc .pc-sold{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) rotate(-10deg);padding:calc(var(--u)*1mm) calc(var(--u)*3mm);border:.5mm solid currentColor;font-size:calc(var(--u)*13pt);font-weight:700;letter-spacing:.2em;white-space:nowrap}
 #priceList{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;max-width:980px}
 .pc-wrap{display:flex;flex-direction:column;gap:6px;align-items:center}
@@ -349,6 +352,8 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <div id="priceItems" style="display:flex;flex-direction:column;gap:10px"></div>
       <p class="hint" id="priceCopiesHint">価格欄の右の数字は、刷る枚数です。「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。</p>
       <button class="btn dash" id="addPrice">＋ 商品を追加</button>
+      <button class="btn" data-pblank="1">手書き用の空白カードを印刷（1シート）</button>
+      <p class="hint">枠・店名・ロゴだけを刷った台紙です。商品名と価格は、ペンで書き込めます。</p>
       <details style="border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px"><summary style="cursor:pointer;font-size:12px;font-weight:700">まとめて貼り付けて追加</summary>
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
           <textarea class="in" id="priceBulk" rows="4" placeholder="真鍮リング, 2800, 天然石・フリーサイズ&#10;ピアス, 3200"></textarea>
@@ -383,6 +388,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <p class="hint">100%が標準です。大きくしすぎると、はみ出した部分は切れます。</p>
       </div>
       <label class="chk"><input type="checkbox" id="priceFrame"><span style="flex:1">細い枠線を入れる</span></label>
+      <label class="chk"><input type="checkbox" id="priceGuide"><span style="flex:1">手書き用カードに目安線を入れる</span><small>空白カード用</small></label>
       <label class="chk"><input type="checkbox" id="priceShop"><span style="flex:1">店名・ロゴを小さく入れる</span></label>
       <label class="chk"><input type="checkbox" id="priceQr"><span style="flex:1">お店のQRコードを入れる</span><small>SNS・ショップへ</small></label>
       <p class="hint" id="priceQrHint">QRコードの行き先は、下の「QRコードのリンク先」で設定します。小さく印刷するため、ロゴは中央に入れません。</p>
@@ -787,7 +793,7 @@ const DEF = {
   purpose: 'shop', vcLast: '木成', vcFirst: '花子', vcLastKana: 'きなり', vcFirstKana: 'はなこ', vcTitle: '代表・デザイナー',
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
-  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceV: 2,
+  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
   priceFs: { name: 100, price: 100, note: 100, shop: 100 },
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
@@ -875,6 +881,7 @@ function priceCardHtml(it, q, pw, ph, extra) {
   const parts = priceParts(it.price), tax = S.priceTax === 'in' ? '税込' : S.priceTax === 'ex' ? '税抜' : '';
   const sz = parts ? (parts.num.length <= 6 ? '' : parts.num.length <= 8 ? 'm' : 's') : '';
   const priceHtml = parts ? `<div class="pc-price">${parts.pre ? `<span class="pre">${esc(parts.pre)}</span>` : ''}<span class="num ${sz}">${esc(parts.num)}</span>${parts.post ? `<span class="post">${esc(parts.post)}</span>` : ''}${parts.n && tax ? `<span class="tax">${tax}</span>` : ''}</div>` : '';
+  const guideHtml = it.blank && S.priceGuide ? '<div class="pc-guide"><i></i><i class="pr"></i></div>' : '';
   const nameHtml = clean(it.name) ? `<div class="pc-name">${esc(clean(it.name))}</div>` : '';
   const noteHtml = clean(it.note) ? `<div class="pc-note">${esc(clean(it.note))}</div>` : '';
   const logo = S.priceShop && S.logoCard ? effLogo() : '';
@@ -882,7 +889,7 @@ function priceCardHtml(it, q, pw, ph, extra) {
   const qrBox = S.priceQr && q ? `<div class="pc-qr">${qrSvg(q, col, 0, '', qrBg).replace('<svg ', '<svg style="width:calc(var(--u)*13mm);height:calc(var(--u)*13mm);flex:none" ')}${clean(S.qrLabel) ? `<div class="qrl">${esc(clean(S.qrLabel))}</div>` : ''}</div>` : '';
   const foot = who || qrBox ? `<div class="pc-foot${qrBox ? '' : ' noqr'}">${who}${qrBox}</div>` : '';
   return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
-    ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}</div>${foot}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
+    ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}${guideHtml}</div>${foot}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
 }
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
 function sheetGeom() {
@@ -1089,7 +1096,7 @@ function renderPriceControls() {
   document.querySelectorAll('[data-playout]').forEach(b => b.classList.toggle('on', b.dataset.playout === S.priceLayout));
   document.querySelectorAll('[data-punit]').forEach(b => b.classList.toggle('on', b.dataset.punit === S.priceUnit));
   document.querySelectorAll('[data-ptax]').forEach(b => b.classList.toggle('on', b.dataset.ptax === S.priceTax));
-  $('priceFrame').checked = !!S.priceFrame; $('priceShop').checked = !!S.priceShop; $('priceQr').checked = !!S.priceQr;
+  $('priceFrame').checked = !!S.priceFrame; $('priceGuide').checked = !!S.priceGuide; $('priceShop').checked = !!S.priceShop; $('priceQr').checked = !!S.priceQr;
   $('priceQrHint').hidden = !S.priceQr;
   [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => { $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%'; });
   const [pw, ph] = priceDims(), per = (a, b) => S.priceSize === 'meishi' ? 10 : Math.floor(198 / a) * Math.floor(285 / b), now = per(pw, ph), alt = per(ph, pw);
@@ -1278,6 +1285,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
   const ds = t.dataset;
   if (ds.purpose) { S.purpose = ds.purpose; return renderAll(); }
+  if (ds.pblank != null) return doPrint('cards', 'blank');
   if (ds.pprint != null) return doPrint('cards', +ds.pprint);
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
   if (ds.porient) { S.priceOrient = ds.porient; return renderAll(); }
@@ -1319,7 +1327,7 @@ $('priceBulkAdd').onclick = () => {
 [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
 $('priceFsReset').onclick = () => { S.priceFs = { name: 100, price: 100, note: 100, shop: 100 }; renderAll(); };
 $('priceEach').onchange = e => { S.priceEach = e.target.checked; renderAll(); };
-['priceFrame', 'priceShop', 'priceQr'].forEach(k => $(k).onchange = e => { S[k] = e.target.checked; renderAll(); });
+['priceFrame', 'priceGuide', 'priceShop', 'priceQr'].forEach(k => $(k).onchange = e => { S[k] = e.target.checked; renderAll(); });
 ['priceW', 'priceH'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value === '' ? '' : Number(e.target.value); renderPreview(); }));
 $('addLink').onclick = () => { if (S.links.length < MAX_LINKS) { S.links.push({ label: '', url: '' }); renderAll(); } };
 $('vcPhotoVcf').onchange = e => { S.vcPhotoVcf = e.target.checked; renderAll(); };
@@ -1463,7 +1471,8 @@ function buildSheet(mode, only) {   // mode: 'cards' | 'check'; only: 商品の�
   if (mode === 'cards') {
     if (isPrice()) {
       const [pw, ph] = priceDims(), one = it => rot(priceCardHtml(it, CUR.qr, pw, ph));
-      if (only != null || S.priceEach) (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).forEach(it => { const n = priceCopies(it) || per, c = one(it); for (let k = 0; k < n; k += per) chunks.push(Array(Math.min(per, n - k)).fill(c)); });   // 1商品ごとに新しいシート
+      if (only === 'blank') chunks = [Array(per).fill(one({ blank: true }))];   // 手書き用の空白カード（枠・店名・ロゴだけ）
+      else if (only != null || S.priceEach) (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).forEach(it => { const n = priceCopies(it) || per, c = one(it); for (let k = 0; k < n; k += per) chunks.push(Array(Math.min(per, n - k)).fill(c)); });   // 1商品ごとに新しいシート
       else { const cards = priceExpanded().map(one); for (let k = 0; k < cards.length; k += per) chunks.push(cards.slice(k, k + per)); }
     } else chunks = [Array(per).fill(rot(cardHtml(CUR.qr)))];
   }
@@ -1488,7 +1497,7 @@ function buildSheet(mode, only) {   // mode: 'cards' | 'check'; only: 商品の�
 }
 const fmtMm = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1) + 'mm';
 function doPrint(mode, only) {
-  if (isPrice() && mode === 'cards' && !priceItemsClean().length) return toast('商品名か価格を入れてください');
+  if (isPrice() && mode === 'cards' && only !== 'blank' && !priceItemsClean().length) return toast('商品名か価格を入れてください');
   $('print').innerHTML = buildSheet(mode, only);
   const prev = document.title; document.title = fileBase() + (mode === 'check' ? '_位置確認' : isPrice() ? '_プライスカード' : '_名刺');
   const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
@@ -1537,7 +1546,7 @@ const KEYS_STR = ['vcCta', 'brand', 'bio', 'sns', 'url', 'qrLabel', 'base', 'log
 const KEYS_BOOL = ['logoQr', 'logoCard', 'logoPage', 'vcPhotoVcf', 'vcPhotoQr'];
 function exportObj(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceShop', 'priceQr', 'priceEach', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
@@ -1574,7 +1583,7 @@ function applyImport(d) {
   pick('priceLayout', ['center', 'left'].includes(d.priceLayout) ? d.priceLayout : undefined);
   pick('priceUnit', ['yen', 'en'].includes(d.priceUnit) ? d.priceUnit : undefined);
   pick('priceTax', ['in', 'ex', 'none'].includes(d.priceTax) ? d.priceTax : undefined);
-  ['priceFrame', 'priceShop', 'priceQr', 'priceEach'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
+  ['priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
   ['priceW', 'priceH'].forEach(k => pick(k, Number.isFinite(d[k]) ? Math.max(25, Math.min(k === 'priceW' ? 190 : 280, d[k])) : undefined));
   if (d.priceFs && typeof d.priceFs === 'object') n.priceFs = Object.fromEntries(['name', 'price', 'note', 'shop'].map(k => [k, Number.isFinite(d.priceFs[k]) ? Math.max(50, Math.min(220, Math.round(d.priceFs[k]))) : S.priceFs[k]]));
   if (Array.isArray(d.priceItems)) n.priceItems = d.priceItems.filter(it => it && typeof it === 'object').slice(0, MAX_PRICE).map(it => ({ name: str(it.name, 100) || '', price: str(it.price, 30) || '', note: str(it.note, 160) || '', copies: Number.isFinite(it.copies) && it.copies >= 1 ? Math.min(100, Math.round(it.copies)) : 0, sold: it.sold === true }));
