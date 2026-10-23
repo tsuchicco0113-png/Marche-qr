@@ -266,6 +266,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .pp-h{display:flex;align-items:center;gap:4px}
 .pp-h small{font-size:10.5px;color:var(--mute);font-weight:400}
 .pp-f{display:flex;flex-direction:column;gap:6px}
+.nocopies input[data-k="copies"]{display:none}
 .pp-hand{display:flex;gap:10px;align-items:center}
 .pp-hand .btn{flex:1}
 .pp-thumb{position:relative;width:54px;height:96px;flex:none;border:1px solid var(--line);border-radius:4px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mute)}
@@ -362,7 +363,10 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <div class="seg" id="paperTones"></div>
       <p class="hint">写真・イラストは「ディザ」がおすすめです（4色のEZ Signでも、文字や輪郭が読みやすく残ります）。「ディザ」は細かい点を混ぜて、なめらかに見せます。「網点」は新聞の写真のような白黒の点で、電子ペーパーらしい質感になります。文字とQRコードは、いつもくっきり刷ります。</p>
       <label class="chk" id="paperVertRow"><input type="checkbox" id="paperVert"><span style="flex:1">看板・営業中などを縦書きにする</span><small>縦向きのとき</small></label>
-      <label class="chk"><input type="checkbox" id="paperLogo"><span style="flex:1">ロゴを入れる</span></label>
+      <span style="font-size:12px;font-weight:700">ロゴの位置</span>
+      <div class="seg" id="paperLogoPos"></div>
+      <div class="rng" id="paperLogoSizeRow"><span style="width:52px">大きさ</span><input type="range" id="paperLogoSize" min="6" max="30" step="1"><output id="paperLogoSizeO"></output></div>
+      <p class="hint" id="paperLogoHint" style="margin:0">ロゴの画像は「ロゴ」の欄で選びます。看板の画面のロゴも、この大きさに合わせて変わります。</p>
       <label class="chk"><input type="checkbox" id="paperFlip"><span style="flex:1">上下を反転して書き出す</span><small>スタンドに逆さに挿すとき</small></label>
       <p class="hint">書体は「世界観」で選べます（明朝にすると活版印刷の雰囲気になります）。電子ペーパーは色が出ないので、白・黒と14段階のグレーで表します。</p>
     </div></details>
@@ -475,14 +479,15 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     </div></details>
 
     <details class="acc" data-sec="style"><summary><h2>世界観（紙・色・書体）</h2><span class="sm" id="sm-style"></span></summary><div class="acc-body">
-      <span class="sub-h">紙の色</span>
+      <span class="sub-h" id="bgsH">紙の色</span>
       <div class="inks" id="bgs"></div>
-      <span class="sub-h">紙の質感</span>
+      <span class="sub-h" id="texsH">紙の質感</span>
       <div class="papers" id="texs"></div>
       <span class="sub-h">書体</span>
       <div class="fonts" id="fonts"></div>
-      <span class="sub-h">インク</span>
+      <span class="sub-h" id="inksH">インク</span>
       <div class="inks" id="inks"></div>
+      <p class="hint" id="stylePaperHint" hidden>電子ペーパーは白・黒（とグレーや赤）だけなので、ここでは書体だけが反映されます。リンクページの紙の色やインクは「店頭モード」で選べます。</p>
     </div></details>
 
     <details class="acc" data-sec="logo"><summary><h2>ロゴ</h2><span class="sm" id="sm-logo"></span></summary><div class="acc-body">
@@ -495,9 +500,9 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button class="txtbtn" id="logoDel" hidden>削除</button>
       </div>
       <label class="f" id="logoUrlRow">ロゴ画像のURL<input class="in" id="logoUrl" placeholder="./logo.png または https://…"></label>
-      <label class="chk"><input type="checkbox" id="logoQr"><span style="flex:1">QRコードの中央に入れる</span></label>
+      <label class="chk" id="logoQrRow"><input type="checkbox" id="logoQr"><span style="flex:1">QRコードの中央に入れる</span></label>
       <div class="rng" id="logoSizeRow"><span style="width:52px">大きさ</span><input type="range" id="logoSize" min="12" max="26" step="1"><output id="logoSizeO"></output></div>
-      <label class="chk"><input type="checkbox" id="logoCard"><span style="flex:1">名刺に表示</span></label>
+      <label class="chk" id="logoCardRow"><input type="checkbox" id="logoCard"><span style="flex:1" id="logoCardLabel">名刺に表示</span></label>
       <label class="chk" id="logoPageRow"><input type="checkbox" id="logoPage"><span style="flex:1">リンクページにも表示</span><small id="logoPageNote"></small></label>
       <p class="hint" id="logoHint"></p>
     </div></details>
@@ -1106,7 +1111,7 @@ const DEF = {
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
-  paperDev: 'diy', paperPal: 'bwr', paperDevSet: false, paperOrient: 'port', paperStyle: 'rule', paperTone: 'dither', paperVert: false, paperLogo: true, paperFlip: false, paperPages: null,
+  paperDev: 'diy', paperPal: 'bwr', paperDevSet: false, paperOrient: 'port', paperStyle: 'rule', paperTone: 'dither', paperVert: false, paperLogo: true, paperLogoPos: 'foot', paperLogoSize: 12, paperFlip: false, paperPages: null,
   priceFs: { name: 100, price: 100, note: 100, shop: 100 },
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true, paper: true, paperdesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
@@ -1467,6 +1472,13 @@ function renderControls() {
   $('logoQr').disabled = $('logoCard').disabled = !lg;
   $('logoSize').value = S.logoSize; $('logoSizeO').textContent = S.logoSize + '%';
   $('logoSizeRow').style.opacity = lg && S.logoQr ? 1 : .45;
+  // モードごとに、効かない項目は隠す
+  $('logoQrRow').hidden = $('logoSizeRow').hidden = price;                          // 値札のQRは小さいので中央ロゴを入れない
+  $('logoCardRow').hidden = paper;                                                    // 電子ペーパーは「紙面のデザイン」のロゴ位置で決める
+  $('logoCardLabel').textContent = price ? 'カードに表示（店名の横）' : '名刺に表示';
+  ['bgsH', 'bgs', 'texsH', 'texs', 'inksH', 'inks'].forEach(id => { $(id).hidden = paper; });
+  $('stylePaperHint').hidden = !paper;
+  $('secPrice').classList.toggle('nocopies', paper);
   $('logoPageRow').hidden = !shopCard;
   $('logoPage').disabled = !isUrl || !lg;
   $('logoPageRow').classList.toggle('dis', !isUrl || !lg);
@@ -1797,6 +1809,7 @@ function paperPagesClean(a) {
   return out.length ? out : paperPagesClean(PAPER_DEF_PAGES);
 }
 S.paperPages = paperPagesClean(S.paperPages);
+if (S.paperLogo === false && S.paperLogoPos === 'foot') { S.paperLogoPos = 'none'; S.paperLogo = true; }
 const PAPER_DEVS = [
   { id: 'diy', label: 'PaperDIY 4.7インチ', sub: '16階調・ボタンで切替', w: 960, h: 540, scale: 1 },
   { id: 'ez42', label: 'EZ Sign 4.2インチ', sub: '400×300・スマホで書換', w: 400, h: 300, scale: 2 }];
@@ -1807,6 +1820,9 @@ const paperPal = () => isEz() ? (PAPER_PALS.find(p => p.id === S.paperPal) || PA
 const paperOutDims = () => { const d = paperDev(); return S.paperOrient === 'land' ? [d.w, d.h] : [d.h, d.w]; };
 const paperScale = () => paperDev().scale;
 const paperDims = () => paperOutDims().map(v => v * paperScale());   // 描くときの大きさ（EZ Signは2倍で描いて縮める）
+const PAPER_LOGO_POS = [{ id: 'none', label: 'なし' }, { id: 'foot', label: '下（店名の横）' }, { id: 'top', label: '上の中央' }, { id: 'tl', label: '左上' }, { id: 'tr', label: '右上' }, { id: 'br', label: '右下' }];
+const paperLogoOn = () => S.paperLogoPos !== 'none';
+const paperLogoK = () => Math.max(0.5, Math.min(2.5, (+S.paperLogoSize || 12) / 12));   // 看板の大きなロゴの倍率
 const paperFam = () => FONTS[S.font].family;
 const paperWt = () => S.font === 0 ? 700 : S.font === 3 ? 400 : 600;
 const pf = (wt, px) => {   // EZ Sign（白黒）では小さい文字がつぶれるので、最小サイズと太さを底上げ
@@ -1937,33 +1953,43 @@ function pFrame(c, T) {
   }
 }
 function pHead(c, T, text, top) {
-  const x = c.getContext('2d'), W = c.width, M = T.M, wt = paperWt(), maxW = W - M * 2 - 20;
+  const side = T.hasLogo && ['tl', 'tr'].includes(S.paperLogoPos) ? T.logoPx + 12 : 0;   // 角のロゴの反対側へずらす
+  const x = c.getContext('2d'), W = c.width, M = T.M, wt = paperWt(), maxW = W - M * 2 - 20 - side, CX = W / 2 + (S.paperLogoPos === 'tl' ? side / 2 : -side / 2);
   if (T.style === 'band') {
     const f = pFit(x, text, maxW - 30, 70, 54, 26, wt, 1, 1.2), bh = Math.max(84, f.h + 26);
-    x.fillStyle = T.acc; x.fillRect(M - 8, top, W - M * 2 + 16, bh);
-    x.fillStyle = T.inv && !T.red ? T.bg : '#fff'; pDraw(x, f, W / 2, top + (bh - f.h) / 2, wt);
-    x.fillStyle = T.fg; x.fillRect(M - 8, top + bh + 6, W - M * 2 + 16, 2);
+    const bx = M - 8 + (S.paperLogoPos === 'tl' ? side : 0), bw = W - M * 2 + 16 - side;
+    x.fillStyle = T.acc; x.fillRect(bx, top, bw, bh);
+    x.fillStyle = T.inv && !T.red ? T.bg : '#fff'; pDraw(x, f, bx + bw / 2, top + (bh - f.h) / 2, wt);
+    x.fillStyle = T.fg; x.fillRect(bx, top + bh + 6, bw, 2);
     return top + bh + 26;
   }
-  const f = pFit(x, text, maxW, 140, 58, 26, wt, 2, 1.25);
-  x.fillStyle = T.fg; let y = pDraw(x, f, W / 2, top, wt) + 12;
-  const lw = Math.min(W - M * 2, Math.max(160, x.measureText(f.lines[0] || '').width + 60));
+  let f = pFit(x, text, maxW, 80, 58, 28, wt, 1, 1.25);   // 見出しはなるべく1行で
+  x.font = pf(wt, f.s); if (f.lines.length > 1 || f.lines.join('') !== String(text).replace(/\n/g, '') || x.measureText(f.lines[0] || '').width > maxW) f = pFit(x, text, maxW, 140, 58, 26, wt, 2, 1.25);
+  x.fillStyle = T.fg; let y = pDraw(x, f, CX, top, wt) + 12;
+  const lw = Math.min(maxW, Math.max(160, x.measureText(f.lines[0] || '').width + 60));
   x.strokeStyle = T.acc;
-  if (T.style === 'rule') { x.lineWidth = 3; x.beginPath(); x.moveTo((W - lw) / 2, y); x.lineTo((W + lw) / 2, y); x.stroke(); x.lineWidth = 1; x.beginPath(); x.moveTo((W - lw) / 2, y + 6); x.lineTo((W + lw) / 2, y + 6); x.stroke(); y += 6; }
-  else if (T.style === 'hand') { x.lineWidth = 3; rWave(x, (W - lw) / 2, (W + lw) / 2, y, 2.6); y += 4; }
-  else if (T.style === 'invert') { x.strokeStyle = T.red ? T.acc : T.mid; x.lineWidth = 2; x.setLineDash([4, 6]); x.beginPath(); x.moveTo((W - lw) / 2, y); x.lineTo((W + lw) / 2, y); x.stroke(); x.setLineDash([]); }
-  else { x.lineWidth = 2; x.beginPath(); x.moveTo((W - lw * 0.6) / 2, y); x.lineTo((W + lw * 0.6) / 2, y); x.stroke(); }
+  if (T.style === 'rule') { x.lineWidth = 3; x.beginPath(); x.moveTo(CX - lw / 2, y); x.lineTo(CX + lw / 2, y); x.stroke(); x.lineWidth = 1; x.beginPath(); x.moveTo(CX - lw / 2, y + 6); x.lineTo(CX + lw / 2, y + 6); x.stroke(); y += 6; }
+  else if (T.style === 'hand') { x.lineWidth = 3; rWave(x, CX - lw / 2, CX + lw / 2, y, 2.6); y += 4; }
+  else if (T.style === 'invert') { x.strokeStyle = T.red ? T.acc : T.mid; x.lineWidth = 2; x.setLineDash([4, 6]); x.beginPath(); x.moveTo(CX - lw / 2, y); x.lineTo(CX + lw / 2, y); x.stroke(); x.setLineDash([]); }
+  else { x.lineWidth = 2; x.beginPath(); x.moveTo(CX - lw * 0.3, y); x.lineTo(CX + lw * 0.3, y); x.stroke(); }
   return y + 24;
 }
 function pFoot(c, T, logo) {   // 店名（とロゴ）を下に小さく → 戻り値は使える下端
   const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, name = clean(S.brand);
   if (!name && !logo) return H - M;
-  const y = H - M - 18, lg = logo && S.paperLogo ? 34 : 0;
+  const lg = logo && S.paperLogoPos === 'foot' ? T.logoPx : 0, y = H - M - Math.max(18, lg / 2 + 4);
+  if (!name && !lg) return H - M;
   x.font = pf(400, 24); const tw = name ? x.measureText(name).width : 0, tot = tw + (lg ? lg + (tw ? 10 : 0) : 0);
   let sx = (W - tot) / 2;
   if (lg) { pImg(c, logo, sx, y - lg / 2, lg, lg, T.inv); sx += lg + 10; }
   if (name) { x.fillStyle = T.mid; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(name, sx, y); }
-  return y - 30;
+  return y - Math.max(30, lg / 2 + 14);
+}
+function pLogoMark(c, T, logo) {   // 上の中央・四隅のロゴ（下の場合は店名の横に pFoot が描く）
+  const pos = S.paperLogoPos; if (!logo || !['top', 'tl', 'tr', 'br'].includes(pos)) return;
+  const W = c.width, H = c.height, M = T.M, s = T.logoPx, i = Math.max(10, M * 0.7);
+  const at = { top: [(W - s) / 2, M + 4], tl: [i, i], tr: [W - i - s, i], br: [W - i - s, H - i - s] }[pos];
+  pImg(c, logo, at[0], at[1], s, s, T.inv);
 }
 function pDiamondRule(x, T, cx, y, w) {
   x.strokeStyle = x.fillStyle = T.red ? T.acc : T.mid; x.lineWidth = 1.5;
@@ -1974,16 +2000,16 @@ function pDiamondRule(x, T, cx, y, w) {
 
 /* ---- pages ---- */
 function pSign(c, T, P, ctx) {
-  const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt(), land = W > H, logo = S.paperLogo ? ctx.logo : null, q = ctx.qr;
+  const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt(), land = W > H, logo = paperLogoOn() ? ctx.logo : null, q = ctx.qr, LK = paperLogoK();
   const brand = clean(S.brand), bio = clean(S.bio), sns = clean(S.sns), qlab = clean(S.qrLabel);
   pFrame(c, T); x.fillStyle = T.fg;
   if (land) {
-    const colW = q ? W * 0.56 : W - M * 2, cx = M + colW / 2;
+    const colW = q ? W * (isEz() ? 0.53 : 0.56) : W - M * 2, cx = M + colW / 2;
     let y;
     const fb = pFit(x, brand, colW - 20, 170, 84, 34, wt, 2, 1.2), fbio = pFit(x, bio, colW - 20, 120, 34, 20, 400, 3, 1.5);
-    const tot = (logo ? 140 : 0) + fb.h + (bio ? fbio.h + 34 : 0) + (sns ? 50 : 0);
+    const ls = Math.min(Math.round(120 * LK), H - M * 2 - fb.h - 30), tot = (logo ? ls + 20 : 0) + fb.h + (bio ? fbio.h + 34 : 0) + (sns ? 50 : 0);
     y = Math.max(M + 10, (H - tot) / 2);
-    if (logo) { pImg(c, logo, cx - 60, y, 120, 120, T.inv); y += 140; }
+    if (logo) { pImg(c, logo, cx - ls / 2, y, ls, ls, T.inv); y += ls + 20; }
     x.fillStyle = T.fg; y = pDraw(x, fb, cx, y, wt);
     if (bio) { pDiamondRule(x, T, cx, y + 16, Math.min(colW * 0.6, 260)); x.fillStyle = T.fg; y = pDraw(x, fbio, cx, y + 34, 400); }
     if (sns) { x.fillStyle = T.mid; x.font = pf(400, 22); x.textAlign = 'center'; x.fillText(sns, cx, y + 30); }
@@ -2001,15 +2027,15 @@ function pSign(c, T, P, ctx) {
     const top = M + 20, avail = bottom - top - 20, bn = vLen(brand), size = Math.min(118, Math.floor(avail / bn / 1.06), (W - M * 2) / 2.2);
     const bs = bio ? Math.min(36, Math.floor((avail - 30) / vLen(bio) / 1.06)) : 0, bioCols = bio ? String(bio).split('\n').length : 0;
     const totW = size * 1.3 + (bio ? 26 + bs * 1.3 * Math.max(1, bioCols) : 0), xr = (W + totW) / 2;
-    if (logo) pImg(c, logo, W - M - 76, top - 6, 70, 70, T.inv);
+    if (logo) { const ls = Math.round(70 * LK); pImg(c, logo, W - M - ls - 6, top - 6, ls, ls, T.inv); }
     x.fillStyle = T.fg; pVert(x, brand, xr, top + Math.max(0, (avail - bn * size * 1.06) / 2), size, wt, avail);
     if (bio) { x.fillStyle = T.mid; pVert(x, bio, xr - size * 1.3 - 26, top + 30, bs, 400, avail - 30); }
   } else {
     let y = M + 26;
     const fb = pFit(x, brand, W - M * 2 - 20, 210, 92, 36, wt, 2, 1.18), fbio = pFit(x, bio, W - M * 2 - 30, 170, 34, 20, 400, 4, 1.55);
-    const tot = (logo ? 200 : 0) + fb.h + (bio ? fbio.h + 46 : 0);
+    const ls = Math.min(Math.round(180 * LK), W - M * 2), tot = (logo ? ls + 20 : 0) + fb.h + (bio ? fbio.h + 46 : 0);
     y = M + 10 + Math.max(0, (bottom - M - 10 - tot) / 2);
-    if (logo) { pImg(c, logo, W / 2 - 90, y, 180, 180, T.inv); y += 200; }
+    if (logo) { pImg(c, logo, W / 2 - ls / 2, y, ls, ls, T.inv); y += ls + 20; }
     x.fillStyle = T.fg; y = pDraw(x, fb, W / 2, y, wt);
     if (bio) { pDiamondRule(x, T, W / 2, y + 22, 260); x.fillStyle = T.fg; pDraw(x, fbio, W / 2, y + 46, 400); }
   }
@@ -2034,7 +2060,7 @@ function pQRPage(c, T, P, ctx) {
     if (q) pQR(c, q, W - M - (W - M * 2 - colW) / 2, H / 2, Math.min(H - M * 2 - 10, W - M * 2 - colW), ctx.qlogo);
     return;
   }
-  let y = pHead(c, T, clean(P.title) || 'QRコード', M + 14);
+  let y = pHead(c, T, clean(P.title) || 'QRコード', T.top + 14);
   const foot = pFoot(c, T, ctx.logo), fs = pFit(x, sub, W - M * 2 - 20, 90, 30, 18, 400, 2, 1.45);
   const size = Math.min(W - M * 2 - 20, foot - y - (sub ? fs.h + 30 : 10));
   if (q) pQR(c, q, W / 2, y + size / 2, size, ctx.qlogo);
@@ -2045,13 +2071,13 @@ function menuRows() {
   return items.map(it => { const p = priceParts(it.price); return { name: clean(it.name), price: p ? p.pre + p.num + p.post : '', note: clean(it.note), sold: !!it.sold }; });
 }
 function menuLayout(W, H, T) {   // 1ページに入る行数
-  const hasNote = menuRows().some(r => r.note), ez = isEz(), rowH = hasNote ? (ez ? 86 : 92) : (ez ? 64 : 66), cols = W > H && !ez ? 2 : 1, top = T.M + (T.style === 'band' ? 150 : 120) + (ez ? 36 : 50), bot = H - T.M - (ez ? 56 : 70);
+  const hasNote = menuRows().some(r => r.note), ez = isEz(), rowH = hasNote ? (ez ? 86 : 92) : (ez ? 64 : 66), cols = W > H && !ez ? 2 : 1, top = T.top + (T.style === 'band' ? 150 : 120) + (ez ? 36 : 50), bot = H - T.M - (ez ? 56 : 70);
   return { rowH, cols, per: Math.max(1, Math.floor((bot - top) / rowH)) * cols, top };
 }
 function pMenu(c, T, P, ctx, chunk, pageNo, pages) {
   const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt();
   pFrame(c, T);
-  let y = pHead(c, T, (clean(P.title) || '商品一覧') + (pages > 1 ? `（${pageNo}/${pages}）` : ''), M + 14);
+  let y = pHead(c, T, (clean(P.title) || '商品一覧') + (pages > 1 ? `（${pageNo}/${pages}）` : ''), T.top + 14);
   const tax = S.priceTax === 'in' ? '表示価格はすべて税込です' : S.priceTax === 'ex' ? '表示価格は税抜です' : '';
   if (tax) { x.fillStyle = T.mid; x.font = pf(400, 20); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(tax, W / 2, y + 2); y += 30; }
   pFoot(c, T, ctx.logo);
@@ -2089,7 +2115,7 @@ function pStatus(c, T, P, ctx) {
   pFrame(c, T);
   const foot = pFoot(c, T, ctx.logo), kick = PAPER_KICK[P.type] || '';
   if (S.paperVert && !land) {   // 縦書き：大きな文字を中央に1列
-    const top = M + 40, avail = foot - top - 20, n = vLen(word), size = Math.min(170, Math.floor(avail / n / 1.06), (W - M * 2) / 1.8);
+    const top = T.top + 40, avail = foot - top - 20, n = vLen(word), size = Math.min(170, Math.floor(avail / n / 1.06), (W - M * 2) / 1.8);
     const xr = W / 2 + size * 0.65 + (sub || back ? 40 : 0);
     x.fillStyle = T.fg; pVert(x, word, xr, top + Math.max(0, (avail - n * size * 1.06) / 2), size, wt, avail);
     let xl = xr - size * 1.3 - 26;
@@ -2101,7 +2127,7 @@ function pStatus(c, T, P, ctx) {
   const fw = pFit(x, word, W - M * 2 - (P.type === 'soldout' ? 90 : 30), land ? 260 : 380, land ? 168 : 150, 48, wt, 2, 1.12);
   const fs = pFit(x, sub, W - M * 2 - 30, 110, land ? 38 : 34, 18, 400, 2, 1.5), fbk = back ? pFit(x, back, W - M * 2 - 30, 70, land ? 48 : 44, 22, wt, 1) : null;
   const kickH = kick ? 50 : 0, tot = kickH + fw.h + (fbk ? fbk.h + 26 : 0) + (sub ? fs.h + 40 : 0);
-  let y = M + Math.max(0, (foot - M - tot) / 2);
+  let y = T.top + Math.max(0, (foot - T.top - tot) / 2);
   if (kick) { x.fillStyle = T.kick; x.font = pf(isEz() ? 700 : 400, 24); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(kick.split('').join(' '), W / 2, y + 16); y += kickH + (P.type === 'soldout' ? 22 : 0); }
   if (P.type === 'soldout') {   // ハンコ風の二重枠
     x.save(); x.translate(W / 2, y + fw.h / 2); x.rotate(-0.07);
@@ -2115,7 +2141,7 @@ function pStatus(c, T, P, ctx) {
 function pPay(c, T, P, ctx) {
   const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt(), land = W > H;
   pFrame(c, T);
-  const y0 = pHead(c, T, clean(P.title) || 'お支払い方法', M + 14), foot = pFoot(c, T, ctx.logo);
+  const y0 = pHead(c, T, clean(P.title) || 'お支払い方法', T.top + 14), foot = pFoot(c, T, ctx.logo);
   const list = String(P.extra || '').split(/[・,、，\n]/).map(s => s.trim()).filter(Boolean).slice(0, 10);
   if (!list.length) return;
   const cols = (land && !isEz()) || list.length > (isEz() ? 5 : 6) ? 2 : 1, rows = Math.ceil(list.length / cols), gap = 18, colW = (W - M * 2 - 20 - (cols - 1) * 24) / cols;
@@ -2135,7 +2161,7 @@ function pPay(c, T, P, ctx) {
 function pNext(c, T, P, ctx) {
   const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt(), land = W > H, q = ctx.qr;
   pFrame(c, T);
-  let y = pHead(c, T, clean(P.title) || '次回の出店', M + 14);
+  let y = pHead(c, T, clean(P.title) || '次回の出店', T.top + 14);
   const yHead = y;
   const foot = pFoot(c, T, ctx.logo), qs = q ? (land ? 190 : 210) : 0, colW = land && q ? W - M * 2 - qs - 50 : W - M * 2 - 20, cx = land && q ? M + 10 + colW / 2 : W / 2;
   const fd = pFit(x, clean(P.extra), colW, 160, land ? 56 : 54, 24, wt, 2, 1.25), fp = pFit(x, clean(P.sub), colW, 110, 42, 20, wt, 2, 1.3), fb = pFit(x, clean(P.body), colW, land ? 130 : 160, 30, 18, 400, 4, 1.5);
@@ -2153,7 +2179,7 @@ function pNext(c, T, P, ctx) {
 function pFree(c, T, P, ctx) {
   const x = c.getContext('2d'), W = c.width, M = T.M;
   pFrame(c, T);
-  const y = pHead(c, T, clean(P.title) || 'お知らせ', M + 14), foot = pFoot(c, T, ctx.logo);
+  const y = pHead(c, T, clean(P.title) || 'お知らせ', T.top + 14), foot = pFoot(c, T, ctx.logo);
   const fb = pFit(x, clean(P.body), W - M * 2 - 30, foot - y - 20, 48, 20, 400, 30, 1.6);
   x.fillStyle = T.fg; pDraw(x, fb, W / 2, y + Math.max(0, (foot - y - fb.h) / 2 - 10), 400);
 }
@@ -2212,6 +2238,8 @@ async function paperBuild() {
   const sample = [S.brand, S.bio, S.sns, S.qrLabel, 'OPENBREAKSOLDOUT表示価格はすべて税込です完売最新情報はこちら0123456789¥円', ...on.flatMap(p => [p.title, p.sub, p.extra, p.body]), ...menuRows().flatMap(r => [r.name, r.price, r.note])].join('');
   try { await Promise.race([Promise.all([400, wt].map(w => document.fonts.load(pf(w, 40), sample || 'あ'))), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
   const logo = await paperImg(effLogo()), qlogo = centerLogo() ? logo : null;
+  T.logoPx = Math.round(Math.min(W, H) * (+S.paperLogoSize || 12) / 100);
+  T.top = T.M + (logo && S.paperLogoPos === 'top' ? T.logoPx + 12 : 0); T.hasLogo = !!logo;
   const ctx = { qr: CUR.qr, logo, qlogo }, out = [];
   let n = 0;
   const mk = () => { RSEED = 7; const c = document.createElement('canvas'); c.width = W; c.height = H; c._dither = []; return c; };
@@ -2219,13 +2247,14 @@ async function paperBuild() {
     if (P.type === 'menu') {
       const rows = menuRows(); if (!rows.length) continue;
       const per = menuLayout(W, H, T).per, pages = Math.ceil(rows.length / per);
-      for (let k = 0; k < pages; k++) { const c = mk(); pMenu(c, T, P, ctx, rows.slice(k * per, k * per + per), k + 1, pages); out.push({ c, type: P.type, label: PAPER_TYPES[P.type].label + (pages > 1 ? ` ${k + 1}` : ''), name: `${String(++n).padStart(2, '0')}_menu${pages > 1 ? '-' + (k + 1) : ''}.png` }); }
+      for (let k = 0; k < pages; k++) { const c = mk(); pMenu(c, T, P, ctx, rows.slice(k * per, k * per + per), k + 1, pages); pLogoMark(c, T, logo); out.push({ c, type: P.type, label: PAPER_TYPES[P.type].label + (pages > 1 ? ` ${k + 1}` : ''), name: `${String(++n).padStart(2, '0')}_menu${pages > 1 ? '-' + (k + 1) : ''}.png` }); }
       continue;
     }
     const c = mk();
     if (P.type === 'photo') { pPhoto(c, T, P, await paperImg(P.img)); out.push({ c, type: P.type, label: PAPER_TYPES.photo.label, name: `${String(++n).padStart(2, '0')}_photo.png` }); continue; }
     if (P.type === 'hand') { pHand(c, T, { _ink: await paperImg(P.img), _bg: await paperImg(P.bgimg) }); out.push({ c, type: P.type, label: PAPER_TYPES.hand.label, name: `${String(++n).padStart(2, '0')}_hand.png` }); continue; }
     ({ sign: pSign, qr: pQRPage, open: pStatus, brk: pStatus, soldout: pStatus, pay: pPay, next: pNext, free: pFree })[P.type](c, T, P, ctx);
+    if (P.type !== 'sign') pLogoMark(c, T, logo);
     out.push({ c, type: P.type, label: PAPER_TYPES[P.type].label, name: `${String(++n).padStart(2, '0')}_${P.type}.png` });
   }
   const k = paperScale();
@@ -2390,7 +2419,11 @@ function renderPaperControls() {
   $('paperHint').textContent = ez ? 'Santek EZ Sign（4.2インチ）に表示する画像を作ります。公式アプリで画像を選んで、スマホをかざすと書き換わります。電池なしで表示が残ります。' : 'M5Stack PaperDIY（4.7インチ電子ペーパー）に表示する画面を作ります。看板・QR・価格表・営業中／休憩中などを、本体のボタンで切り替えて使えます。電源を切っても表示が残るので、電池を気にせず一日中置いておけます。';
   $('paperStyles').innerHTML = PAPER_STYLES.map(s => `<button data-pstyle="${s.id}" class="${S.paperStyle === s.id ? 'on' : ''}">${s.label}</button>`).join('');
   $('paperTones').innerHTML = PAPER_TONES.map(s => `<button data-ptone="${s.id}" class="${S.paperTone === s.id ? 'on' : ''}">${ez && s.id === 'gray' ? 'ベタ（点なし）' : s.label}</button>`).join('');
-  ['paperVert', 'paperLogo', 'paperFlip'].forEach(k => { $(k).checked = !!S[k]; });
+  ['paperVert', 'paperFlip'].forEach(k => { $(k).checked = !!S[k]; });
+  $('paperLogoPos').innerHTML = PAPER_LOGO_POS.map(o => `<button data-plpos="${o.id}" class="${S.paperLogoPos === o.id ? 'on' : ''}">${o.label}</button>`).join('');
+  $('paperLogoSize').value = S.paperLogoSize; $('paperLogoSizeO').textContent = S.paperLogoSize + '%';
+  $('paperLogoSizeRow').hidden = !paperLogoOn();
+  $('paperLogoHint').textContent = effLogo() ? 'ロゴの画像は「ロゴ」の欄で選びます。看板の画面のロゴも、この大きさに合わせて変わります。' : 'ロゴの画像がまだありません。下の「ロゴ」の欄で選んでください。';
   $('paperVertRow').classList.toggle('dis', S.paperOrient === 'land');
   const menuOn = S.paperPages.some(p => p.on && p.type === 'menu');
   $('paperMenuHint').hidden = !(menuOn && !priceItemsClean().length);
@@ -2405,7 +2438,8 @@ $('paperPages').addEventListener('change', e => {
   const i = e.target.dataset.pon; if (i == null) return;
   S.paperPages[+i].on = e.target.checked; renderAll();
 });
-['paperVert', 'paperLogo', 'paperFlip'].forEach(k => $(k).addEventListener('change', e => { S[k] = e.target.checked; renderAll(); }));
+['paperVert', 'paperFlip'].forEach(k => $(k).addEventListener('change', e => { S[k] = e.target.checked; renderAll(); }));
+$('paperLogoSize').addEventListener('input', e => { S.paperLogoSize = +e.target.value; $('paperLogoSizeO').textContent = S.paperLogoSize + '%'; save(); schedulePaper(); });
 $('paperAddHand').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'hand', on: true, title: '', sub: '', extra: '', body: '', img: '', bgimg: '' }); renderAll(); openHandPad(S.paperPages.length - 1); };
 $('paperAddPhoto').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'photo', on: true, title: '', sub: '', extra: '', body: '', img: '', bgimg: '', fit: 'contain' }); renderAll(); };
 $('paperAddFree').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'free', on: true, title: 'お知らせ', sub: '', extra: '', body: '' }); renderAll(); };
@@ -2416,6 +2450,7 @@ document.addEventListener('click', e => {
   else if (ds.pstyle) { S.paperStyle = ds.pstyle; renderAll(); }
   else if (ds.pdev) { S.paperDev = ds.pdev; if (ds.pdev !== 'diy' && S.paperOrient === 'port' && !S.paperDevSet) S.paperOrient = 'land'; S.paperDevSet = true; renderAll(); }
   else if (ds.ppal) { S.paperPal = ds.ppal; renderAll(); }
+  else if (ds.plpos) { S.paperLogoPos = ds.plpos; renderAll(); }
   else if (ds.pfit) { const [i, f] = ds.pfit.split(','); if (S.paperPages[+i]) { S.paperPages[+i].fit = f; renderAll(); } }
   else if (ds.ptone) { S.paperTone = ds.ptone; renderAll(); }
   else if (ds.ppmv) { const [i, d] = ds.ppmv.split(',').map(Number), j = i + d; if (j < 0 || j >= S.paperPages.length) return; [S.paperPages[i], S.paperPages[j]] = [S.paperPages[j], S.paperPages[i]]; renderAll(); }
@@ -2693,7 +2728,7 @@ const KEYS_STR = ['vcCta', 'brand', 'bio', 'sns', 'url', 'qrLabel', 'base', 'log
 const KEYS_BOOL = ['logoQr', 'logoCard', 'logoPage', 'vcPhotoVcf', 'vcPhotoQr'];
 function exportObj(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'paperDev', 'paperPal', 'paperOrient', 'paperStyle', 'paperTone', 'paperVert', 'paperLogo', 'paperFlip', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'paperDev', 'paperPal', 'paperOrient', 'paperStyle', 'paperTone', 'paperVert', 'paperLogoPos', 'paperLogoSize', 'paperFlip', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
@@ -2731,7 +2766,9 @@ function applyImport(d) {
   pick('paperPal', PAPER_PALS.some(x => x.id === d.paperPal) ? d.paperPal : undefined);
   pick('paperStyle', PAPER_STYLES.some(x => x.id === d.paperStyle) ? d.paperStyle : undefined);
   pick('paperTone', PAPER_TONES.some(x => x.id === d.paperTone) ? d.paperTone : undefined);
-  ['paperVert', 'paperLogo', 'paperFlip'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
+  ['paperVert', 'paperFlip'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
+  pick('paperLogoPos', PAPER_LOGO_POS.some(o => o.id === d.paperLogoPos) ? d.paperLogoPos : d.paperLogo === false ? 'none' : undefined);
+  pick('paperLogoSize', Number.isFinite(d.paperLogoSize) ? Math.max(6, Math.min(30, Math.round(d.paperLogoSize))) : undefined);
   if (Array.isArray(d.paperPages)) n.paperPages = paperPagesClean(d.paperPages);
   pick('priceSize', PSIZES.some(p => p.id === d.priceSize) ? d.priceSize : undefined);
   pick('priceOrient', ['land', 'port'].includes(d.priceOrient) ? d.priceOrient : undefined);
