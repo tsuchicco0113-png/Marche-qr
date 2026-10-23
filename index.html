@@ -542,6 +542,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button class="btn" id="jsonOut">JSONを書き出し</button>
         <label class="btn" style="cursor:pointer">JSONを読み込み<input type="file" id="jsonIn" accept="application/json,.json" style="display:none"></label>
       </div>
+      <button class="btn" id="cfgQr">スマホに設定を送る（QR）</button>
       <label class="chk"><input type="checkbox" id="jsonImg" checked><span style="flex:1">画像（ロゴ・写真）も含める</span><small id="jsonSize"></small></label>
       <p class="hint">別のPCへの引っ越し・バックアップ・出店者ごとの切り替えに使えます。取扱説明書ジェネレーターの書き出しJSONを読み込むと、屋号・紹介文・リンク集をそのまま引き継ぎます。</p>
     </div></details>
@@ -552,11 +553,15 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     <div id="paperFoot" hidden style="display:flex;flex-direction:column;gap:8px">
       <button class="primary" id="paperZip">microSD用にまとめて保存（ZIP）</button>
       <div class="grid3" style="grid-template-columns:1fr 1fr">
+        <button class="btn" id="paperShare" title="iPhone・Androidの共有シートで写真に保存">写真に保存（共有）</button>
+        <button class="btn" id="paperToPhone" title="PCで作った設定をスマホで開く">スマホで開く（QR）</button>
+      </div>
+      <div class="grid3" style="grid-template-columns:1fr 1fr">
         <button class="btn" id="paperUsb" title="PCのChrome / Edge">PaperDIYに書き込む（USB）</button>
         <button class="btn" id="paperInoBtn">表示用スケッチ（.ino）</button>
       </div>
       <p class="hint" style="margin:0" id="paperFootDiy">はじめて使うときは、表示用スケッチを本体に一度だけ書き込みます（ZIPにも入っています）。</p>
-      <p class="hint" style="margin:0" id="paperFootEz" hidden>保存した画像を EZ Sign の公式アプリで選び、スマホをかざして書き込みます。1画面ずつの「PNG」でも保存できます。</p>
+      <p class="hint" style="margin:0" id="paperFootEz" hidden>スマホでこのページを開いて「写真に保存」すると、そのまま EZ Sign の公式アプリで選べます。PCで作ったときは「スマホで開く（QR）」で、設定ごとスマホに渡せます。</p>
     </div>
     <div class="grid3" id="dlGrid">
       <button class="btn" id="dlPng">QR PNG</button>
@@ -1115,8 +1120,9 @@ const DEF = {
   priceFs: { name: 100, price: 100, note: 100, shop: 100 },
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true, paper: true, paperdesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
-let S = { ...DEF };
-try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) S = { ...DEF, ...sv, priceFs: { ...DEF.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : DEF.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV === 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : DEF.priceItems, priceV: 2 }; } catch (e) {}
+const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
+let S = JSON.parse(DEF0);
+try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) { const D = JSON.parse(DEF0); S = { ...D, ...sv, priceFs: { ...D.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : D.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV === 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : D.priceItems, priceV: 2 }; } } catch (e) {}
 
 S.bgUrl = '';
 let storeMsg = '';
@@ -2275,7 +2281,7 @@ const canvasPng = c => new Promise(res => c.toBlob(b => res(b), 'image/png'));
 async function renderPaper() {
   const my = ++paperSeq, list = await paperBuild();
   if (my !== paperSeq || !isPaper()) return;
-  PAPER_LAST = list;
+  PAPER_LAST = list; PAPER_SHARE = null; paperPrepShare(list);
   const land = S.paperOrient === 'land', ez = isEz(), [ow, oh] = paperOutDims();
   $('paperList').innerHTML = list.length ? list.map((o, i) => `<figure class="epd"><div class="epd-dev${land ? ' land' : ''}${ez ? ' ez' : ''}"><img src="${o.c.toDataURL('image/png')}" alt="${esc(o.label)}"></div><figcaption><b>${String(i + 1).padStart(2, '0')}</b>${esc(o.label)}<button class="txtbtn" data-ppng="${i}">PNG</button></figcaption></figure>`).join('')
     : '<p class="hint" style="padding:30px 0">左の「電子ペーパーの画面」で、表示する画面にチェックを入れてください。</p>';
@@ -2346,6 +2352,41 @@ $('paperZip').onclick = async () => {
 };
 $('paperInoBtn').onclick = () => dl(new Blob([paperIno()], { type: 'text/plain' }), 'MarcheDisplay.ino');
 
+/* ---- スマホの写真に保存（Web Share）：押した瞬間に共有できるよう、画像は先に用意しておく ---- */
+let PAPER_SHARE = null;
+const canShareFiles = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'a.png', { type: 'image/png' })] })); } catch (e) { return false; } })();
+async function paperPrepShare(list) {
+  if (!canShareFiles) return;
+  const seq = paperSeq, files = [];
+  for (const o of list) { const b = await canvasPng(paperForDevice(o.c)); files.push(new File([b], fileBase() + '_' + o.name, { type: 'image/png' })); }
+  if (seq === paperSeq) PAPER_SHARE = files;
+}
+$('paperShare').onclick = async () => {
+  if (!canShareFiles) return toast('このブラウザは共有に対応していません。画面ごとの「PNG」で保存してください。');
+  if (!PAPER_SHARE || !PAPER_SHARE.length) return toast('画像を準備しています。少し待ってから、もう一度押してください。');
+  try { await navigator.share({ files: PAPER_SHARE, title: (clean(S.brand) || '電子ペーパー') + 'の画面' }); }
+  catch (e) { if (e && e.name !== 'AbortError') toast('共有できませんでした。画面ごとの「PNG」で保存してください。'); }
+};
+
+/* ---- PCの設定をQRでスマホへ（画像は入れない） ---- */
+async function cfgPayload() {
+  const d = exportObj(false).data, def = exportObj(false, JSON.parse(DEF0)).data; delete d.logo; delete d.photo;
+  for (const k of Object.keys(d)) if (k !== 'purpose' && JSON.stringify(d[k]) === JSON.stringify(def[k])) delete d[k];   // 初期値と同じ項目は送らない（QRを小さく）
+  const u8 = enc.encode(JSON.stringify(d));
+  try { if (!window.CompressionStream) throw 0; return 'cfgz' + b64u(await streamBytes(u8, new CompressionStream('deflate-raw'))); } catch (e) { return 'cfgr' + b64u(u8); }
+}
+async function showCfgQr() {
+  const base = HOSTED ? location.origin + location.pathname : (S.base || '').trim().replace(/#.*$/, '');
+  if (!/^https?:\/\//.test(base)) return toast('このアプリを公開しているURLがわかりません。「リンクページを公開した場所」に入れてください。');
+  const url = base + '#' + await cfgPayload();
+  let q; try { q = QR.encode(Array.from(enc.encode(url)), 0); } catch (e) { return toast('内容が多すぎてQRに入りません。JSONの書き出しで渡してください。'); }
+  const px = Math.floor(Math.min(innerWidth, innerHeight - 130) * 0.94);
+  $('qrOverlay').innerHTML = qrSvg(q, '#000', px, '') + `<div style="font-size:16px;font-weight:700;color:#2b2724">スマホのカメラで読み取ってください</div><div style="font-size:12px;color:#8a8379;max-width:520px;text-align:center;line-height:1.6">この設定のまま、スマホでアプリが開きます。ロゴ・写真・手書きの画像は入らないので、スマホで選び直してください。（タップで閉じる）</div>`;
+  $('qrOverlay').hidden = false;
+}
+$('paperToPhone').onclick = showCfgQr;
+$('cfgQr').onclick = showCfgQr;
+
 /* ---- USB（Web Serial）で直接書き込み ---- */
 $('paperUsb').onclick = async () => {
   if (!('serial' in navigator)) return toast('このブラウザはUSB書き込みに対応していません。PCのChrome / Edgeで開いてください。');
@@ -2414,6 +2455,7 @@ function renderPaperControls() {
   $('paperPalRow').hidden = !ez;
   document.querySelector('[data-eor="port"]').textContent = `縦（${pw}×${ph}）`; document.querySelector('[data-eor="land"]').textContent = `横（${ph}×${pw}）`;
   $('paperUsb').hidden = $('paperInoBtn').hidden = $('paperFootDiy').hidden = ez; $('paperFootEz').hidden = !ez;
+  $('paperShare').hidden = !canShareFiles;
   $('paperZip').textContent = ez ? '画像をまとめて保存（ZIP）' : 'microSD用にまとめて保存（ZIP）';
   $('paperPanelTitle').textContent = ez ? '電子ペーパー（EZ Sign 4.2インチ）' : '電子ペーパー（PaperDIY 4.7インチ）';
   $('paperHint').textContent = ez ? 'Santek EZ Sign（4.2インチ）に表示する画像を作ります。公式アプリで画像を選んで、スマホをかざすと書き換わります。電池なしで表示が残ります。' : 'M5Stack PaperDIY（4.7インチ電子ペーパー）に表示する画面を作ります。看板・QR・価格表・営業中／休憩中などを、本体のボタンで切り替えて使えます。電源を切っても表示が残るので、電池を気にせず一日中置いておけます。';
@@ -2726,7 +2768,11 @@ $('printGuide').onchange = e => { S.printGuide = e.target.checked; save(); };
 const APP_ID = 'marche-qr-maker', APP_VER = 2;
 const KEYS_STR = ['vcCta', 'brand', 'bio', 'sns', 'url', 'qrLabel', 'base', 'logoUrl', 'vcLast', 'vcFirst', 'vcLastKana', 'vcFirstKana', 'vcTitle', 'vcTel', 'vcEmail', 'vcUrl', 'vcAdr', 'vcNote'];
 const KEYS_BOOL = ['logoQr', 'logoCard', 'logoPage', 'vcPhotoVcf', 'vcPhotoQr'];
-function exportObj(withImg) {
+function exportObj(withImg, src) {
+  const S0 = S; if (src) S = { ...src, paperPages: paperPagesClean(src.paperPages) };
+  try { return exportObjInner(withImg); } finally { S = S0; }
+}
+function exportObjInner(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
   ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'paperDev', 'paperPal', 'paperOrient', 'paperStyle', 'paperTone', 'paperVert', 'paperLogoPos', 'paperLogoSize', 'paperFlip', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
@@ -2818,6 +2864,18 @@ window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt =
    ========================================================= */
 async function boot() {
   const h = location.hash.slice(1);
+  if (/^cfg[zr][A-Za-z0-9_-]+$/.test(h)) {   // PCから「スマホに設定を送る」で開いたとき
+    try {
+      let u8 = unb64u(h.slice(4));
+      if (h[3] === 'z') { try { if (!window.DecompressionStream) throw 0; u8 = await streamBytes(u8, new DecompressionStream('deflate-raw')); } catch (e) { u8 = inflateRaw(u8); } }
+      const keep = { logo: S.logo, logoSrc: S.logoSrc, logoUrl: S.logoUrl, photo: S.photo };
+      S = { ...JSON.parse(DEF0), ...keep, paperPages: paperPagesClean(null) };   // 初期値から、送られてきた差分を当てる
+      applyImport(JSON.parse(dec.decode(u8)));
+      history.replaceState(null, '', location.pathname + location.search);
+      renderAll(); toast('PCの設定を読み込みました（ロゴ・画像は選び直してください）');
+    } catch (e) { history.replaceState(null, '', location.pathname + location.search); renderAll(); toast('設定を読み込めませんでした'); }
+    return;
+  }
   if (/^[zr][A-Za-z0-9_-]+$/.test(h)) {
     document.body.classList.add('viewing');
     try {
