@@ -256,8 +256,9 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .epd-dev img{display:block;width:200px;height:auto;background:#ecebe6;filter:contrast(.9) brightness(1.03) sepia(.06);border:1px solid #cdc9c0}
 .epd-dev.land img{width:330px}
 .epd-dev.ez{border-radius:6px;padding:9px}
-.epd-dev.ez img{width:200px;filter:none;image-rendering:pixelated}
-.epd-dev.ez.land img{width:300px}
+.epd-dev.ez img{width:300px;height:auto;max-width:100%;filter:none;image-rendering:pixelated;border:0;outline:1px solid #cdc9c0}   /* 等倍（間引くと文字がざらつく） */
+.epd-dev.ez.land img{width:400px}
+@media (max-width:760px){.epd-dev.ez img{image-rendering:auto}}
 .epd figcaption{font-size:11.5px;color:var(--mute);display:flex;gap:8px;align-items:center}
 .epd figcaption b{color:var(--ink)}
 .pp-row{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
