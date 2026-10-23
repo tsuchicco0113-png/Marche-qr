@@ -255,6 +255,9 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .epd-dev.land{padding:10px 24px 10px 12px}
 .epd-dev img{display:block;width:200px;height:auto;background:#ecebe6;filter:contrast(.9) brightness(1.03) sepia(.06);border:1px solid #cdc9c0}
 .epd-dev.land img{width:330px}
+.epd-dev.ez{border-radius:6px;padding:9px}
+.epd-dev.ez img{width:200px;filter:none;image-rendering:pixelated}
+.epd-dev.ez.land img{width:300px}
 .epd figcaption{font-size:11.5px;color:var(--mute);display:flex;gap:8px;align-items:center}
 .epd figcaption b{color:var(--ink)}
 .pp-row{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
@@ -346,6 +349,10 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     </div></details>
 
     <details class="acc" id="secPaperDesign" data-sec="paperdesign"><summary><h2>紙面のデザイン</h2><span class="sm" id="sm-paperdesign"></span></summary><div class="acc-body">
+      <span style="font-size:12px;font-weight:700">表示する端末</span>
+      <div class="seg" id="paperDevs"></div>
+      <div id="paperPalRow" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:700">色（お使いのEZ Signに合わせて）</span><div class="seg" id="paperPals"></div>
+        <p class="hint" style="margin:0">赤は、見出し・営業中などの英字・完売のハンコ・チェック印の差し色に使います。グレーは出ないので、ロゴや写真は点の細かさで濃淡を表します。</p></div>
       <span style="font-size:12px;font-weight:700">画面の向き</span>
       <div class="seg"><button data-eor="port">縦（540×960）</button><button data-eor="land">横（960×540）</button></div>
       <span style="font-size:12px;font-weight:700">紙面のスタイル</span>
@@ -542,7 +549,8 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button class="btn" id="paperUsb" title="PCのChrome / Edge">PaperDIYに書き込む（USB）</button>
         <button class="btn" id="paperInoBtn">表示用スケッチ（.ino）</button>
       </div>
-      <p class="hint" style="margin:0">はじめて使うときは、表示用スケッチを本体に一度だけ書き込みます（ZIPにも入っています）。</p>
+      <p class="hint" style="margin:0" id="paperFootDiy">はじめて使うときは、表示用スケッチを本体に一度だけ書き込みます（ZIPにも入っています）。</p>
+      <p class="hint" style="margin:0" id="paperFootEz" hidden>保存した画像を EZ Sign の公式アプリで選び、スマホをかざして書き込みます。1画面ずつの「PNG」でも保存できます。</p>
     </div>
     <div class="grid3" id="dlGrid">
       <button class="btn" id="dlPng">QR PNG</button>
@@ -557,7 +565,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 
 <main>
   <div class="panel" id="paperPanel" hidden>
-    <div class="panel-h"><b>電子ペーパー（PaperDIY 4.7インチ）</b><span id="paperInfo"></span></div>
+    <div class="panel-h"><b id="paperPanelTitle">電子ペーパー（PaperDIY 4.7インチ）</b><span id="paperInfo"></span></div>
     <div id="paperList"></div>
     <p class="hint" style="max-width:640px;text-align:center">表示イメージです。実機は紙のような白さで、直射日光の下でもはっきり読めます。画面を切り替えるときは一度白黒に点滅してから描き変わります（残像を消すため）。</p>
   </div>
@@ -590,7 +598,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 <div id="handPad" hidden role="dialog" aria-label="手書きの画面">
   <div class="hp-bar">
     <div class="seg"><button data-hpen="3">細</button><button data-hpen="7">中</button><button data-hpen="16">太</button></div>
-    <div class="seg"><button data-hcol="#000">黒</button><button data-hcol="#888">グレー</button><button data-hcol="#fff">白</button><button id="hpErase">消しゴム</button></div>
+    <div class="seg"><button data-hcol="#000">黒</button><button data-hcol="#888">グレー</button><button data-hcol="#e00000">赤</button><button data-hcol="#fff">白</button><button id="hpErase">消しゴム</button></div>
     <button class="btn" id="hpUndo">1つ戻す</button>
     <button class="btn" id="hpClear">全部消す</button>
     <label class="btn" style="cursor:pointer">紙のPOPを撮って取り込む<input type="file" id="hpPhoto" accept="image/*" style="display:none"></label>
@@ -1097,7 +1105,7 @@ const DEF = {
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
-  paperOrient: 'port', paperStyle: 'rule', paperTone: 'dither', paperVert: false, paperLogo: true, paperFlip: false, paperPages: null,
+  paperDev: 'diy', paperPal: 'bwr', paperDevSet: false, paperOrient: 'port', paperStyle: 'rule', paperTone: 'dither', paperVert: false, paperLogo: true, paperFlip: false, paperPages: null,
   priceFs: { name: 100, price: 100, note: 100, shop: 100 },
   open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true, paper: true, paperdesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
@@ -1582,7 +1590,7 @@ async function renderPreview() {
   sm('cap', fit ? fit.name + ' 以上' : nb ? 'NFCに入らない' : '');
   $('cardSize').textContent = cw + ' × ' + ch + ' mm';
   sm('paper', isPaper() ? S.paperPages.filter(p => p.on).length + '画面' : '');
-  sm('paperdesign', isPaper() ? (S.paperOrient === 'land' ? '横' : '縦') + '・' + (PAPER_STYLES.find(x => x.id === S.paperStyle) || {}).label : '');
+  sm('paperdesign', isPaper() ? (isEz() ? 'EZ Sign・' : '') + (S.paperOrient === 'land' ? '横' : '縦') + '・' + (PAPER_STYLES.find(x => x.id === S.paperStyle) || {}).label : '');
   if (isPaper()) schedulePaper();
   save();
 }
@@ -1768,13 +1776,28 @@ function paperPagesClean(a) {
   return out.length ? out : paperPagesClean(PAPER_DEF_PAGES);
 }
 S.paperPages = paperPagesClean(S.paperPages);
-const paperDims = () => S.paperOrient === 'land' ? [960, 540] : [540, 960];
+const PAPER_DEVS = [
+  { id: 'diy', label: 'PaperDIY 4.7インチ', sub: '16階調・ボタンで切替', w: 960, h: 540, scale: 1 },
+  { id: 'ez42', label: 'EZ Sign 4.2インチ', sub: '400×300・スマホで書換', w: 400, h: 300, scale: 2 }];
+const PAPER_PALS = [{ id: 'bw', label: '白黒', c: [[255, 255, 255], [0, 0, 0]] }, { id: 'bwr', label: '白・黒・赤', c: [[255, 255, 255], [0, 0, 0], [255, 0, 0]] }, { id: 'bwry', label: '白・黒・赤・黄', c: [[255, 255, 255], [0, 0, 0], [255, 0, 0], [255, 255, 0]] }];
+const paperDev = () => PAPER_DEVS.find(d => d.id === S.paperDev) || PAPER_DEVS[0];
+const isEz = () => paperDev().id !== 'diy';
+const paperPal = () => isEz() ? (PAPER_PALS.find(p => p.id === S.paperPal) || PAPER_PALS[1]) : null;
+const paperOutDims = () => { const d = paperDev(); return S.paperOrient === 'land' ? [d.w, d.h] : [d.h, d.w]; };
+const paperScale = () => paperDev().scale;
+const paperDims = () => paperOutDims().map(v => v * paperScale());   // 描くときの大きさ（EZ Signは2倍で描いて縮める）
 const paperFam = () => FONTS[S.font].family;
 const paperWt = () => S.font === 0 ? 700 : S.font === 3 ? 400 : 600;
-const pf = (wt, px) => `${wt} ${Math.max(8, Math.round(px))}px ${paperFam()}`;
+const pf = (wt, px) => {   // EZ Sign（白黒）では小さい文字がつぶれるので、最小サイズと太さを底上げ
+  if (S.purpose === 'paper' && isEz()) { if (px < 30) px = 30; if (px <= 40 && wt < paperWt()) wt = paperWt(); }
+  return `${wt} ${Math.max(8, Math.round(px))}px ${paperFam()}`;
+};
 function paperTheme() {
   const inv = S.paperStyle === 'invert';
-  return { inv, style: S.paperStyle, fg: inv ? '#fff' : '#000', bg: inv ? '#000' : '#fff', mid: inv ? '#aaa' : '#555', soft: inv ? '#333' : '#ddd', M: S.paperStyle === 'rule' ? 54 : S.paperStyle === 'hand' ? 46 : 40 };
+  const pal = paperPal(), red = !!pal && pal.id !== 'bw', fg = inv ? '#fff' : '#000';
+  // 白黒赤の端末：グレーは出ないので、補助の色は黒（反転時は白）か赤にする
+  return { inv, style: S.paperStyle, fg, bg: inv ? '#000' : '#fff', mid: pal ? fg : inv ? '#aaa' : '#555', soft: pal ? (red ? '#ff0000' : fg) : inv ? '#333' : '#ddd', acc: red ? '#ff0000' : fg, kick: red ? '#ff0000' : pal ? fg : inv ? '#aaa' : '#555', red,
+    M: S.paperStyle === 'rule' ? 54 : S.paperStyle === 'hand' ? 46 : 40 };
 }
 
 /* ---- text helpers (Japanese-friendly wrap, fit, vertical) ---- */
@@ -1854,7 +1877,7 @@ function pImg(c, img, X, Y, w, h, onTile) {   // contain-fit; 画像の範囲だ
   return [dx, dy, dw, dh];
 }
 function pQR(c, q, cx, cy, size, logo) {   // QRは反転すると読めない機種があるので、いつも白地に黒
-  const x = c.getContext('2d'), n = q.size + 4, u = Math.max(1, Math.floor(size / n)), w = u * n, ox = Math.round(cx - w / 2), oy = Math.round(cy - w / 2);
+  const k = paperScale(), x = c.getContext('2d'), n = q.size + 4, u = Math.max(k, Math.floor(size / n / k) * k), w = u * n, ev = v => Math.round(v / k) * k, ox = ev(cx - w / 2), oy = ev(cy - w / 2);   // 縮めても1マスがにじまないように
   x.fillStyle = '#fff'; x.fillRect(ox, oy, w, w); x.fillStyle = '#000';
   for (let r = 0; r < q.size; r++) for (let cc = 0; cc < q.size; cc++) if (q.m[r][cc]) x.fillRect(ox + (cc + 2) * u, oy + (r + 2) * u, u, u);
   if (logo) {
@@ -1887,7 +1910,7 @@ function pFrame(c, T) {
     x.lineWidth = 5; x.strokeRect(16, 16, W - 32, H - 32); x.lineWidth = 1.5; x.strokeRect(27, 27, W - 54, H - 54);
     [[27, 27], [W - 27, 27], [27, H - 27], [W - 27, H - 27]].forEach(([px, py]) => { x.save(); x.translate(px, py); x.rotate(Math.PI / 4); x.fillRect(-6, -6, 12, 12); x.restore(); });
   } else if (T.style === 'hand') {
-    x.lineWidth = 2.4; rRect(x, 20, 20, W - 40, H - 40, 3);
+    x.lineWidth = 2.4 * paperScale(); rRect(x, 20, 20, W - 40, H - 40, 3);
   } else if (T.style === 'invert') {
     x.strokeStyle = T.mid; x.lineWidth = 2; x.setLineDash([3, 7]); x.strokeRect(18, 18, W - 36, H - 36); x.setLineDash([]);
   }
@@ -1896,18 +1919,18 @@ function pHead(c, T, text, top) {
   const x = c.getContext('2d'), W = c.width, M = T.M, wt = paperWt(), maxW = W - M * 2 - 20;
   if (T.style === 'band') {
     const f = pFit(x, text, maxW - 30, 70, 54, 26, wt, 1, 1.2), bh = Math.max(84, f.h + 26);
-    x.fillStyle = T.fg; x.fillRect(M - 8, top, W - M * 2 + 16, bh);
-    x.fillStyle = T.bg; pDraw(x, f, W / 2, top + (bh - f.h) / 2, wt);
+    x.fillStyle = T.acc; x.fillRect(M - 8, top, W - M * 2 + 16, bh);
+    x.fillStyle = T.inv && !T.red ? T.bg : '#fff'; pDraw(x, f, W / 2, top + (bh - f.h) / 2, wt);
     x.fillStyle = T.fg; x.fillRect(M - 8, top + bh + 6, W - M * 2 + 16, 2);
     return top + bh + 26;
   }
   const f = pFit(x, text, maxW, 140, 58, 26, wt, 2, 1.25);
   x.fillStyle = T.fg; let y = pDraw(x, f, W / 2, top, wt) + 12;
   const lw = Math.min(W - M * 2, Math.max(160, x.measureText(f.lines[0] || '').width + 60));
-  x.strokeStyle = T.fg;
+  x.strokeStyle = T.acc;
   if (T.style === 'rule') { x.lineWidth = 3; x.beginPath(); x.moveTo((W - lw) / 2, y); x.lineTo((W + lw) / 2, y); x.stroke(); x.lineWidth = 1; x.beginPath(); x.moveTo((W - lw) / 2, y + 6); x.lineTo((W + lw) / 2, y + 6); x.stroke(); y += 6; }
   else if (T.style === 'hand') { x.lineWidth = 3; rWave(x, (W - lw) / 2, (W + lw) / 2, y, 2.6); y += 4; }
-  else if (T.style === 'invert') { x.strokeStyle = T.mid; x.lineWidth = 2; x.setLineDash([4, 6]); x.beginPath(); x.moveTo((W - lw) / 2, y); x.lineTo((W + lw) / 2, y); x.stroke(); x.setLineDash([]); }
+  else if (T.style === 'invert') { x.strokeStyle = T.red ? T.acc : T.mid; x.lineWidth = 2; x.setLineDash([4, 6]); x.beginPath(); x.moveTo((W - lw) / 2, y); x.lineTo((W + lw) / 2, y); x.stroke(); x.setLineDash([]); }
   else { x.lineWidth = 2; x.beginPath(); x.moveTo((W - lw * 0.6) / 2, y); x.lineTo((W + lw * 0.6) / 2, y); x.stroke(); }
   return y + 24;
 }
@@ -1922,7 +1945,7 @@ function pFoot(c, T, logo) {   // 店名（とロゴ）を下に小さく → �
   return y - 30;
 }
 function pDiamondRule(x, T, cx, y, w) {
-  x.strokeStyle = T.mid; x.fillStyle = T.mid; x.lineWidth = 1.5;
+  x.strokeStyle = x.fillStyle = T.red ? T.acc : T.mid; x.lineWidth = 1.5;
   if (isHandStyle()) { x.lineWidth = 2; rWave(x, cx - w / 2, cx + w / 2, y, 2.2); return; }
   x.beginPath(); x.moveTo(cx - w / 2, y); x.lineTo(cx - 14, y); x.moveTo(cx + 14, y); x.lineTo(cx + w / 2, y); x.stroke();
   x.save(); x.translate(cx, y); x.rotate(Math.PI / 4); x.fillRect(-5, -5, 10, 10); x.restore();
@@ -1946,7 +1969,7 @@ function pSign(c, T, P, ctx) {
     if (q) {
       const qx = W - M - (W - M * 2 - colW) / 2, size = Math.min(H - M * 2 - 70, W - M * 2 - colW - 10);
       pQR(c, q, qx, (H - 44) / 2, size, ctx.qlogo);
-      if (qlab) { x.fillStyle = T.fg; const f = pFit(x, qlab, size, 40, 26, 16, wt, 1); pDraw(x, f, qx, (H - 44) / 2 + size / 2 + 12, wt); }
+      if (qlab) { x.fillStyle = T.fg; const f = pFit(x, qlab, Math.max(size + 20, W - M * 2 - colW + 40), 90, 26, 16, wt, 2, 1.2); pDraw(x, f, qx, (H - 44) / 2 + size / 2 + 8, wt); }
     }
     return;
   }
@@ -2001,7 +2024,7 @@ function menuRows() {
   return items.map(it => { const p = priceParts(it.price); return { name: clean(it.name), price: p ? p.pre + p.num + p.post : '', note: clean(it.note), sold: !!it.sold }; });
 }
 function menuLayout(W, H, T) {   // 1ページに入る行数
-  const hasNote = menuRows().some(r => r.note), rowH = hasNote ? 92 : 66, cols = W > H ? 2 : 1, top = T.M + (T.style === 'band' ? 150 : 120) + 50, bot = H - T.M - 70;
+  const hasNote = menuRows().some(r => r.note), ez = isEz(), rowH = hasNote ? (ez ? 86 : 92) : (ez ? 64 : 66), cols = W > H && !ez ? 2 : 1, top = T.M + (T.style === 'band' ? 150 : 120) + (ez ? 36 : 50), bot = H - T.M - (ez ? 56 : 70);
   return { rowH, cols, per: Math.max(1, Math.floor((bot - top) / rowH)) * cols, top };
 }
 function pMenu(c, T, P, ctx, chunk, pageNo, pages) {
@@ -2020,8 +2043,8 @@ function pMenu(c, T, P, ctx, chunk, pageNo, pages) {
     let pw = 0;
     if (r.sold) {
       x.font = pf(wt, 22); pw = x.measureText('完売').width + 26;
-      x.strokeStyle = T.fg; x.lineWidth = 2; pBox(x, X + colW - pw, nameY - 18, pw, 36, 6);
-      x.fillStyle = T.fg; x.textAlign = 'center'; x.fillText('完売', X + colW - pw / 2, nameY + 1);
+      x.strokeStyle = T.acc; x.lineWidth = 2; pBox(x, X + colW - pw, nameY - 18, pw, 36, 6);
+      x.fillStyle = T.acc; x.textAlign = 'center'; x.fillText('完売', X + colW - pw / 2, nameY + 1);
     } else if (r.price) {
       x.font = pf(wt, 34); pw = x.measureText(r.price).width; x.fillStyle = T.fg; x.textAlign = 'right'; x.fillText(r.price, X + colW, nameY);
     }
@@ -2035,8 +2058,8 @@ function pMenu(c, T, P, ctx, chunk, pageNo, pages) {
     // dotted leader（点線のリーダー）
     x.fillStyle = T.mid;
     for (let dx = X + nw + 14; dx < X + colW - pw - 14; dx += 12) x.fillRect(dx, nameY + 8, 3, 3);
-    if (r.note) { x.font = pf(400, 21); x.fillStyle = T.mid; let nt = r.note; while (nt.length > 1 && x.measureText(nt).width > colW) nt = nt.slice(0, -2) + '…'; x.fillText(nt, X + 2, nameY + 38); }
-    if (row < rowsPerCol - 1 && i < chunk.length - 1) { x.fillStyle = T.soft; x.fillRect(X, Y + L.rowH - 4, colW, 1); }
+    if (r.note) { x.font = pf(400, 21); x.fillStyle = T.mid; let nt = r.note; while (nt.length > 1 && x.measureText(nt).width > colW) nt = nt.slice(0, -2) + '…'; x.fillText(nt, X + 2, nameY + (isEz() ? 38 : 38)); }
+    if (row < rowsPerCol - 1 && i < chunk.length - 1) { x.fillStyle = T.soft; x.fillRect(X, Y + L.rowH - 4, colW, paperScale()); }
   });
 }
 function pStatus(c, T, P, ctx) {
@@ -2051,19 +2074,19 @@ function pStatus(c, T, P, ctx) {
     let xl = xr - size * 1.3 - 26;
     if (back) { const bs = Math.min(42, Math.floor(avail / vLen(back) / 1.06)); x.fillStyle = T.fg; xl -= pVert(x, back, xl, top + 20, bs, wt, avail) + 10; }
     if (sub) { const ss = Math.min(32, Math.floor(avail / vLen(sub) / 1.06)); x.fillStyle = T.mid; pVert(x, sub, xl, top + 60, ss, 400, avail - 60); }
-    if (kick) { x.fillStyle = T.mid; x.font = pf(400, 22); x.textAlign = 'left'; x.textBaseline = 'middle'; x.save(); x.translate(M + 18, top); x.rotate(Math.PI / 2); x.fillText(kick.split('').join(' '), 0, 0); x.restore(); }
+    if (kick) { x.fillStyle = T.kick; x.font = pf(400, 22); x.textAlign = 'left'; x.textBaseline = 'middle'; x.save(); x.translate(M + 18, top); x.rotate(Math.PI / 2); x.fillText(kick.split('').join(' '), 0, 0); x.restore(); }
     return;
   }
   const fw = pFit(x, word, W - M * 2 - (P.type === 'soldout' ? 90 : 30), land ? 260 : 380, land ? 168 : 150, 48, wt, 2, 1.12);
   const fs = pFit(x, sub, W - M * 2 - 30, 110, land ? 38 : 34, 18, 400, 2, 1.5), fbk = back ? pFit(x, back, W - M * 2 - 30, 70, land ? 48 : 44, 22, wt, 1) : null;
   const kickH = kick ? 50 : 0, tot = kickH + fw.h + (fbk ? fbk.h + 26 : 0) + (sub ? fs.h + 40 : 0);
   let y = M + Math.max(0, (foot - M - tot) / 2);
-  if (kick) { x.fillStyle = T.mid; x.font = pf(400, 24); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(kick.split('').join(' '), W / 2, y + 16); y += kickH + (P.type === 'soldout' ? 22 : 0); }
+  if (kick) { x.fillStyle = T.kick; x.font = pf(isEz() ? 700 : 400, 24); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(kick.split('').join(' '), W / 2, y + 16); y += kickH + (P.type === 'soldout' ? 22 : 0); }
   if (P.type === 'soldout') {   // ハンコ風の二重枠
     x.save(); x.translate(W / 2, y + fw.h / 2); x.rotate(-0.07);
     const bw = Math.min(W - M * 2, Math.max(...fw.lines.map(l => { x.font = pf(wt, fw.s); return x.measureText(l).width; })) + 70), bh = fw.h + 46;
-    x.strokeStyle = T.fg; x.lineWidth = isHandStyle() ? 4 : 7; pBox(x, -bw / 2, -bh / 2, bw, bh, 18); x.lineWidth = 2; pBox(x, -bw / 2 + 11, -bh / 2 + 11, bw - 22, bh - 22, 10);
-    x.fillStyle = T.fg; pDraw(x, fw, 0, -fw.h / 2, wt); x.restore(); y += fw.h + 20;
+    x.strokeStyle = T.acc; x.lineWidth = isHandStyle() ? 4 : 7; pBox(x, -bw / 2, -bh / 2, bw, bh, 18); x.lineWidth = 2; pBox(x, -bw / 2 + 11, -bh / 2 + 11, bw - 22, bh - 22, 10);
+    x.fillStyle = T.acc; pDraw(x, fw, 0, -fw.h / 2, wt); x.restore(); y += fw.h + 20;
   } else { x.fillStyle = T.fg; y = pDraw(x, fw, W / 2, y, wt); }
   if (fbk) { x.fillStyle = T.fg; y = pDraw(x, fbk, W / 2, y + 26, wt); }
   if (sub) { pDiamondRule(x, T, W / 2, y + 22, 240); x.fillStyle = T.fg; pDraw(x, fs, W / 2, y + 40, 400); }
@@ -2074,14 +2097,14 @@ function pPay(c, T, P, ctx) {
   const y0 = pHead(c, T, clean(P.title) || 'お支払い方法', M + 14), foot = pFoot(c, T, ctx.logo);
   const list = String(P.extra || '').split(/[・,、，\n]/).map(s => s.trim()).filter(Boolean).slice(0, 10);
   if (!list.length) return;
-  const cols = land || list.length > 6 ? 2 : 1, rows = Math.ceil(list.length / cols), gap = 18, colW = (W - M * 2 - 20 - (cols - 1) * 24) / cols;
+  const cols = (land && !isEz()) || list.length > (isEz() ? 5 : 6) ? 2 : 1, rows = Math.ceil(list.length / cols), gap = 18, colW = (W - M * 2 - 20 - (cols - 1) * 24) / cols;
   const rh = Math.min(96, (foot - y0 - gap * rows) / rows), fsz = Math.min(40, rh * 0.42);
   list.forEach((m, i) => {
     const cl = Math.floor(i / rows), r = i % rows, X = M + 10 + cl * (colW + 24), Y = y0 + r * (rh + gap);
     x.strokeStyle = T.fg; x.lineWidth = 2.5; pBox(x, X, Y, colW, rh, 14);
     // チェック印
     const cx = X + rh * 0.5, cy = Y + rh / 2, cr = rh * 0.22;
-    x.lineWidth = 2; x.beginPath(); x.arc(cx, cy, cr, 0, Math.PI * 2); x.stroke();
+    x.strokeStyle = T.acc; x.lineWidth = 2; x.beginPath(); x.arc(cx, cy, cr, 0, Math.PI * 2); x.stroke();
     x.lineWidth = 4; x.beginPath(); x.moveTo(cx - cr * 0.5, cy); x.lineTo(cx - cr * 0.1, cy + cr * 0.45); x.lineTo(cx + cr * 0.6, cy - cr * 0.45); x.stroke();
     x.fillStyle = T.fg; x.textAlign = 'left'; x.textBaseline = 'middle';
     let s = fsz; x.font = pf(wt, s); while (s > 16 && x.measureText(m).width > colW - rh - 20) { s -= 2; x.font = pf(wt, s); }
@@ -2115,7 +2138,34 @@ function pFree(c, T, P, ctx) {
 }
 
 /* ---- 16階調に落とす（画像の範囲だけディザ） ---- */
+const T_INV = () => S.paperStyle === 'invert';
+function paperQuantizePal(c, pal) {   // 白黒・白黒赤・白黒赤黄：近い色に置き換え（画像の範囲だけ誤差拡散）
+  const x = c.getContext('2d'), W = c.width, H = c.height, im = x.getImageData(0, 0, W, H), d = im.data, P = pal.c, F = new Float32Array(W * H * 3), mask = new Uint8Array(W * H);
+  for (let j = 0; j < W * H; j++) { F[j * 3] = d[j * 4]; F[j * 3 + 1] = d[j * 4 + 1]; F[j * 3 + 2] = d[j * 4 + 2]; }
+  const tone = S.paperTone;
+  if (tone !== 'gray') (c._dither || []).forEach(([rx, ry, rw, rh]) => { for (let yy = Math.max(0, Math.floor(ry)); yy < Math.min(H, Math.ceil(ry + rh)); yy++) mask.fill(1, yy * W + Math.max(0, Math.floor(rx)), yy * W + Math.min(W, Math.ceil(rx + rw))); });
+  const near = (r, g, b, set) => { let bi = 0, bd = 1e9; set.forEach((q, i) => { const dd = (r - q[0]) ** 2 * 0.3 + (g - q[1]) ** 2 * 0.59 + (b - q[2]) ** 2 * 0.11; if (dd < bd) { bd = dd; bi = i; } }); return set[bi]; };
+  const mono = P.slice(0, 2);
+  for (let yy = 0; yy < H; yy++) for (let xx = 0; xx < W; xx++) {
+    const j = yy * W + xx, r = F[j * 3], g = F[j * 3 + 1], b = F[j * 3 + 2];
+    let q;
+    if (mask[j]) q = near(r, g, b, tone === 'mono' ? mono : P);
+    else {   // 文字・線：にじんだ縁を太らせる側に倒す（細い線が切れないように）
+      const lum = r * 0.299 + g * 0.587 + b * 0.114, redish = P.length > 2 && r > 110 && r - g > 70 && r - b > 70, yel = P.length > 3 && r > 150 && g > 150 && b < 110;
+      q = yel ? P[3] : redish ? (lum > 215 ? P[0] : P[2]) : (lum < (T_INV() ? 90 : 175) ? P[1] : P[0]);
+    }
+    if (mask[j]) {
+      const er = r - q[0], eg = g - q[1], eb = b - q[2];
+      const add = (k, f) => { if (mask[k]) { F[k * 3] += er * f; F[k * 3 + 1] += eg * f; F[k * 3 + 2] += eb * f; } };
+      if (xx + 1 < W) add(j + 1, 7 / 16);
+      if (yy + 1 < H) { if (xx > 0) add(j + W - 1, 3 / 16); add(j + W, 5 / 16); if (xx + 1 < W) add(j + W + 1, 1 / 16); }
+    }
+    d[j * 4] = q[0]; d[j * 4 + 1] = q[1]; d[j * 4 + 2] = q[2]; d[j * 4 + 3] = 255;
+  }
+  x.putImageData(im, 0, 0);
+}
 function paperQuantize(c) {
+  if (paperPal()) return paperQuantizePal(c, paperPal());
   const x = c.getContext('2d'), W = c.width, H = c.height, im = x.getImageData(0, 0, W, H), d = im.data, L = new Float32Array(W * H), mask = new Uint8Array(W * H);
   for (let i = 0, j = 0; j < W * H; i += 4, j++) L[j] = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
   const tone = S.paperTone, lv = tone === 'mono' ? 255 : 17;
@@ -2156,6 +2206,12 @@ async function paperBuild() {
     ({ sign: pSign, qr: pQRPage, open: pStatus, brk: pStatus, soldout: pStatus, pay: pPay, next: pNext, free: pFree })[P.type](c, T, P, ctx);
     out.push({ c, type: P.type, label: PAPER_TYPES[P.type].label, name: `${String(++n).padStart(2, '0')}_${P.type}.png` });
   }
+  const k = paperScale();
+  if (k !== 1) out.forEach(o => {   // 2倍で描いたものを、端末の解像度に縮める
+    const [ow, oh] = paperOutDims(), s2 = document.createElement('canvas'); s2.width = ow; s2.height = oh;
+    const x = s2.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(o.c, 0, 0, ow, oh);
+    s2._dither = (o.c._dither || []).map(r => r.map(v => v / k)); o.c = s2;
+  });
   out.forEach(o => paperQuantize(o.c));
   return out;
 }
@@ -2169,10 +2225,10 @@ async function renderPaper() {
   const my = ++paperSeq, list = await paperBuild();
   if (my !== paperSeq || !isPaper()) return;
   PAPER_LAST = list;
-  const land = S.paperOrient === 'land';
-  $('paperList').innerHTML = list.length ? list.map((o, i) => `<figure class="epd"><div class="epd-dev${land ? ' land' : ''}"><img src="${o.c.toDataURL('image/png')}" alt="${esc(o.label)}"></div><figcaption><b>${String(i + 1).padStart(2, '0')}</b>${esc(o.label)}<button class="txtbtn" data-ppng="${i}">PNG</button></figcaption></figure>`).join('')
+  const land = S.paperOrient === 'land', ez = isEz(), [ow, oh] = paperOutDims();
+  $('paperList').innerHTML = list.length ? list.map((o, i) => `<figure class="epd"><div class="epd-dev${land ? ' land' : ''}${ez ? ' ez' : ''}"><img src="${o.c.toDataURL('image/png')}" alt="${esc(o.label)}"></div><figcaption><b>${String(i + 1).padStart(2, '0')}</b>${esc(o.label)}<button class="txtbtn" data-ppng="${i}">PNG</button></figcaption></figure>`).join('')
     : '<p class="hint" style="padding:30px 0">左の「電子ペーパーの画面」で、表示する画面にチェックを入れてください。</p>';
-  $('paperInfo').textContent = `${list.length}画面・${land ? '横 960×540' : '縦 540×960'}・16階調`;
+  $('paperInfo').textContent = `${paperDev().label}・${list.length}画面・${land ? '横' : '縦'} ${ow}×${oh}・${ez ? paperPal().label : '16階調'}`;
 }
 function schedulePaper() { clearTimeout(schedulePaper.t); schedulePaper.t = setTimeout(renderPaper, 180); }
 
@@ -2206,6 +2262,19 @@ const PAPER_README = `Marché QR Maker → M5Stack PaperDIY
 microSD がなくても、PCの Chrome / Edge で「PaperDIYに書き込む（USB）」を押すと、
 USBケーブルで本体のフラッシュに直接書き込めます。
 `;
+const EZ_README = () => `Marché QR Maker → Santek EZ Sign 4.2インチ
+
+ezsign フォルダの画像は、EZ Sign 4.2インチの解像度（${paperOutDims().join('×')}）と
+色（${paperPal().label}）に合わせてあります。
+
+1. 画像をスマホ（またはPC）に保存します。
+2. EZ Sign の公式アプリで画像を選びます。
+   アプリで拡大・切り抜きを聞かれたら、そのまま（画面いっぱい・等倍）にしてください。
+3. スマホを EZ Sign の裏にかざして書き込みます。電池はいりません。
+
+※ お使いの EZ Sign の色数（白黒／白・黒・赤／4色）に合わせて、アプリ側で選んでください。
+※ この画像は Santek 公式のものではありません。
+`;
 const paperIno = () => $('paperIno').textContent.replace(/^\n/, '');
 async function paperFiles() {
   PAPER_LAST = await paperBuild();
@@ -2215,6 +2284,11 @@ async function paperFiles() {
 }
 $('paperZip').onclick = async () => {
   const files = await paperFiles(); if (!files.length) return toast('表示する画面がありません');
+  if (isEz()) {
+    const zf = files.map(f => ({ name: 'ezsign/' + f.name, data: f.data }));
+    zf.push({ name: 'はじめにお読みください.txt', data: enc.encode(EZ_README()) });
+    dl(zipStore(zf), fileBase() + '_ezsign42.zip'); toast(files.length + '画面をZIPに保存しました'); return;
+  }
   const zf = files.map(f => ({ name: 'marche/' + f.name, data: f.data }));
   zf.push({ name: 'MarcheDisplay/MarcheDisplay.ino', data: enc.encode(paperIno()) }, { name: 'はじめにお読みください.txt', data: enc.encode(PAPER_README) });
   dl(zipStore(zf), fileBase() + '_paperdiy.zip'); toast(files.length + '画面をZIPに保存しました');
@@ -2283,8 +2357,17 @@ function renderPaperControls() {
   }).join('');
   $('paperAddFree').disabled = $('paperAddHand').disabled = S.paperPages.length >= MAX_PAPER;
   document.querySelectorAll('[data-eor]').forEach(b => b.classList.toggle('on', b.dataset.eor === S.paperOrient));
+  const ez = isEz(), [ow, oh] = paperOutDims(), [pw, ph] = [Math.min(ow, oh), Math.max(ow, oh)];
+  $('paperDevs').innerHTML = PAPER_DEVS.map(d => `<button data-pdev="${d.id}" class="${paperDev().id === d.id ? 'on' : ''}"><b style="display:block">${d.label}</b><small>${d.sub}</small></button>`).join('');
+  $('paperPals').innerHTML = PAPER_PALS.map(p => `<button data-ppal="${p.id}" class="${paperPal() && paperPal().id === p.id ? 'on' : ''}">${p.label}</button>`).join('');
+  $('paperPalRow').hidden = !ez;
+  document.querySelector('[data-eor="port"]').textContent = `縦（${pw}×${ph}）`; document.querySelector('[data-eor="land"]').textContent = `横（${ph}×${pw}）`;
+  $('paperUsb').hidden = $('paperInoBtn').hidden = $('paperFootDiy').hidden = ez; $('paperFootEz').hidden = !ez;
+  $('paperZip').textContent = ez ? '画像をまとめて保存（ZIP）' : 'microSD用にまとめて保存（ZIP）';
+  $('paperPanelTitle').textContent = ez ? '電子ペーパー（EZ Sign 4.2インチ）' : '電子ペーパー（PaperDIY 4.7インチ）';
+  $('paperHint').textContent = ez ? 'Santek EZ Sign（4.2インチ）に表示する画像を作ります。公式アプリで画像を選んで、スマホをかざすと書き換わります。電池なしで表示が残ります。' : 'M5Stack PaperDIY（4.7インチ電子ペーパー）に表示する画面を作ります。看板・QR・価格表・営業中／休憩中などを、本体のボタンで切り替えて使えます。電源を切っても表示が残るので、電池を気にせず一日中置いておけます。';
   $('paperStyles').innerHTML = PAPER_STYLES.map(s => `<button data-pstyle="${s.id}" class="${S.paperStyle === s.id ? 'on' : ''}">${s.label}</button>`).join('');
-  $('paperTones').innerHTML = PAPER_TONES.map(s => `<button data-ptone="${s.id}" class="${S.paperTone === s.id ? 'on' : ''}">${s.label}</button>`).join('');
+  $('paperTones').innerHTML = PAPER_TONES.map(s => `<button data-ptone="${s.id}" class="${S.paperTone === s.id ? 'on' : ''}">${ez && s.id === 'gray' ? 'ベタ（点なし）' : s.label}</button>`).join('');
   ['paperVert', 'paperLogo', 'paperFlip'].forEach(k => { $(k).checked = !!S[k]; });
   $('paperVertRow').classList.toggle('dis', S.paperOrient === 'land');
   const menuOn = S.paperPages.some(p => p.on && p.type === 'menu');
@@ -2306,6 +2389,8 @@ document.addEventListener('click', e => {
   const ds = t.dataset;
   if (ds.eor) { S.paperOrient = ds.eor; renderAll(); }
   else if (ds.pstyle) { S.paperStyle = ds.pstyle; renderAll(); }
+  else if (ds.pdev) { S.paperDev = ds.pdev; if (ds.pdev !== 'diy' && S.paperOrient === 'port' && !S.paperDevSet) S.paperOrient = 'land'; S.paperDevSet = true; renderAll(); }
+  else if (ds.ppal) { S.paperPal = ds.ppal; renderAll(); }
   else if (ds.ptone) { S.paperTone = ds.ptone; renderAll(); }
   else if (ds.ppmv) { const [i, d] = ds.ppmv.split(',').map(Number), j = i + d; if (j < 0 || j >= S.paperPages.length) return; [S.paperPages[i], S.paperPages[j]] = [S.paperPages[j], S.paperPages[i]]; renderAll(); }
   else if (ds.ppdel != null) { S.paperPages.splice(+ds.ppdel, 1); renderAll(); }
@@ -2582,7 +2667,7 @@ const KEYS_STR = ['vcCta', 'brand', 'bio', 'sns', 'url', 'qrLabel', 'base', 'log
 const KEYS_BOOL = ['logoQr', 'logoCard', 'logoPage', 'vcPhotoVcf', 'vcPhotoQr'];
 function exportObj(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'paperOrient', 'paperStyle', 'paperTone', 'paperVert', 'paperLogo', 'paperFlip', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'paperDev', 'paperPal', 'paperOrient', 'paperStyle', 'paperTone', 'paperVert', 'paperLogo', 'paperFlip', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
@@ -2616,6 +2701,8 @@ function applyImport(d) {
   pick('mode', ['card', 'url'].includes(d.mode) ? d.mode : undefined);
   pick('purpose', ['shop', 'biz', 'price', 'paper'].includes(d.purpose) ? d.purpose : undefined);
   pick('paperOrient', ['port', 'land'].includes(d.paperOrient) ? d.paperOrient : undefined);
+  pick('paperDev', PAPER_DEVS.some(x => x.id === d.paperDev) ? d.paperDev : undefined);
+  pick('paperPal', PAPER_PALS.some(x => x.id === d.paperPal) ? d.paperPal : undefined);
   pick('paperStyle', PAPER_STYLES.some(x => x.id === d.paperStyle) ? d.paperStyle : undefined);
   pick('paperTone', PAPER_TONES.some(x => x.id === d.paperTone) ? d.paperTone : undefined);
   ['paperVert', 'paperLogo', 'paperFlip'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
