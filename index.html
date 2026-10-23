@@ -344,7 +344,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     <details class="acc" id="secPaper" data-sec="paper"><summary><h2>電子ペーパーの画面</h2><span class="sm" id="sm-paper"></span></summary><div class="acc-body">
       <p class="hint">チェックした画面を、上から順に本体へ入れます。ボタンBで次、ボタンAで前の画面に切り替わります。</p>
       <div id="paperPages" style="display:flex;flex-direction:column;gap:8px"></div>
-      <div class="grid3" style="grid-template-columns:1fr 1fr"><button class="btn dash" id="paperAddHand">＋ 手書きの画面</button><button class="btn dash" id="paperAddFree">＋ 自由メモの画面</button></div>
+      <div class="grid3"><button class="btn dash" id="paperAddPhoto">＋ 写真</button><button class="btn dash" id="paperAddHand">＋ 手書き</button><button class="btn dash" id="paperAddFree">＋ 自由メモ</button></div>
       <p class="warn" id="paperMenuHint" hidden>「商品と価格の一覧」を使うには、下の「商品と価格」に商品を入れてください。</p>
       <p class="hint">QRコードの行き先は、上の「リンクまとめ名刺／URLをそのままQRに」で選んだものになります。</p>
     </div></details>
@@ -360,7 +360,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <div class="seg" id="paperStyles"></div>
       <span style="font-size:12px;font-weight:700">ロゴ・写真の表現</span>
       <div class="seg" id="paperTones"></div>
-      <p class="hint">「ディザ」は16階調に細かい点を混ぜて、なめらかに見せます。「網点」は新聞の写真のような白黒の点で、電子ペーパーらしい質感になります。文字とQRコードは、いつもくっきり刷ります。</p>
+      <p class="hint">写真・イラストは「ディザ」がおすすめです（4色のEZ Signでも、文字や輪郭が読みやすく残ります）。「ディザ」は細かい点を混ぜて、なめらかに見せます。「網点」は新聞の写真のような白黒の点で、電子ペーパーらしい質感になります。文字とQRコードは、いつもくっきり刷ります。</p>
       <label class="chk" id="paperVertRow"><input type="checkbox" id="paperVert"><span style="flex:1">看板・営業中などを縦書きにする</span><small>縦向きのとき</small></label>
       <label class="chk"><input type="checkbox" id="paperLogo"><span style="flex:1">ロゴを入れる</span></label>
       <label class="chk"><input type="checkbox" id="paperFlip"><span style="flex:1">上下を反転して書き出す</span><small>スタンドに逆さに挿すとき</small></label>
@@ -1627,8 +1627,26 @@ function pHand(c, T, P) {
   draw(P._bg); draw(P._ink);
   if (!P._bg && !P._ink) { x.fillStyle = '#999'; x.font = pf(400, 26); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('まだ何も描かれていません', W / 2, H / 2); }
 }
+function pPhoto(c, T, P, img) {   // 写真・イラスト：画像の範囲は誤差拡散ディザ（4色・16階調でも見やすい）
+  const x = c.getContext('2d'), W = c.width, H = c.height, wt = paperWt(), cap = clean(P.title);
+  x.fillStyle = T.bg; x.fillRect(0, 0, W, H);
+  let ih = H;
+  if (cap) {
+    const f = pFit(x, cap, W - 60, H * 0.22, Math.round(H * 0.075), 20, wt, 2, 1.2), bh = Math.round(f.h + H * 0.05);
+    ih = H - bh;
+    x.fillStyle = T.fg; pDraw(x, f, W / 2, ih + (bh - f.h) / 2, wt);
+    x.fillStyle = T.acc; x.fillRect(W * 0.3, ih + 2, W * 0.4, Math.max(2, paperScale() * 2));
+  }
+  if (!img) { x.fillStyle = T.mid; x.font = pf(400, 26); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('画像を選んでください', W / 2, ih / 2); return; }
+  const iw = img.naturalWidth || img.width, hh = img.naturalHeight || img.height;
+  if (P.fit === 'cover') {
+    const k = Math.max(W / iw, ih / hh), dw = iw * k, dh = hh * k;
+    x.save(); x.beginPath(); x.rect(0, 0, W, ih); x.clip(); x.drawImage(img, (W - dw) / 2, (ih - dh) / 2, dw, dh); x.restore();
+    (c._dither || (c._dither = [])).push([0, 0, W, ih]);
+  } else { const pad = cap ? 16 : 0; if (T.inv) { x.fillStyle = '#fff'; x.fillRect(0, 0, W, ih); } pImg(c, img, pad, pad, W - pad * 2, ih - pad * 2); }
+}
 const HAND_IMG_MAX = 1600 * 1024;
-const okImg = v => typeof v === 'string' && /^data:image\/(png|jpeg);base64,/.test(v) && v.length < HAND_IMG_MAX ? v : '';
+const okImg = v => typeof v === 'string' && /^data:image\/(png|jpeg|svg\+xml)[;,]/.test(v) && v.length < HAND_IMG_MAX ? v : '';
 
 /* ---- お絵かきパッド ---- */
 const HP = { i: -1, W: 540, H: 960, ink: null, bg: null, photo: null, undo: [], pen: 7, col: '#000', erase: false, drawing: false, last: null };
@@ -1752,7 +1770,8 @@ const PAPER_TYPES = {
   pay: { label: 'お支払い方法', note: '', f: { title: '見出し', extra: '支払い方法（「・」区切り）' } },
   next: { label: '次回の出店', note: '', f: { title: '見出し', extra: '日にち・時間', sub: '場所', body: 'ひとこと' } },
   free: { label: '自由メモ', note: '', f: { title: '見出し', body: '本文' } },
-  hand: { label: '手書き', note: '指やペンで描く・紙のPOPを撮って取り込む', f: {} }
+  hand: { label: '手書き', note: '指やペンで描く・紙のPOPを撮って取り込む', f: {} },
+  photo: { label: '写真・イラスト', note: '商品写真やキャラクターを大きく', f: { title: '添える一言（空欄なら画像だけ）' } }
 };
 const PAPER_KICK = { open: 'OPEN', brk: 'BREAK', soldout: 'SOLD OUT' };
 const PAPER_DEF_PAGES = [
@@ -1765,7 +1784,8 @@ const PAPER_DEF_PAGES = [
   { type: 'pay', on: true, title: 'お支払い方法', extra: '現金・PayPay・クレジットカード・交通系IC' },
   { type: 'next', on: false, title: '次回の出店', extra: '12月5日（土）10:00〜15:00', sub: '〇〇公園マルシェ', body: '詳しくはSNSでお知らせします' },
   { type: 'free', on: false, title: 'お知らせ', body: 'お取り置きも承ります。\nお気軽にお声がけください。' },
-  { type: 'hand', on: false }];
+  { type: 'hand', on: false },
+  { type: 'photo', on: false, title: '', fit: 'contain' }];
 const PAPER_STYLES = [{ id: 'plain', label: 'シンプル' }, { id: 'rule', label: '罫線（活版）' }, { id: 'band', label: '帯見出し（新聞）' }, { id: 'invert', label: '黒板（白黒反転）' }, { id: 'hand', label: '手描き（ラフな線）' }];
 const PAPER_TONES = [{ id: 'gray', label: '16階調' }, { id: 'dither', label: 'ディザ' }, { id: 'mono', label: '網点（白黒）' }];
 const MAX_PAPER = 20;
@@ -1773,7 +1793,7 @@ function paperPagesClean(a) {
   const src = Array.isArray(a) ? a : PAPER_DEF_PAGES;
   const s = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
   const out = src.filter(p => p && PAPER_TYPES[p.type]).slice(0, MAX_PAPER)
-    .map(p => ({ type: p.type, on: p.on !== false, title: s(p.title, 60), sub: s(p.sub, 160), extra: s(p.extra, 200), body: s(p.body, 800), img: okImg(p.img), bgimg: okImg(p.bgimg) }));
+    .map(p => ({ type: p.type, on: p.on !== false, title: s(p.title, 60), sub: s(p.sub, 160), extra: s(p.extra, 200), body: s(p.body, 800), img: okImg(p.img), bgimg: okImg(p.bgimg), fit: p.fit === 'cover' ? 'cover' : 'contain' }));
   return out.length ? out : paperPagesClean(PAPER_DEF_PAGES);
 }
 S.paperPages = paperPagesClean(S.paperPages);
@@ -2203,6 +2223,7 @@ async function paperBuild() {
       continue;
     }
     const c = mk();
+    if (P.type === 'photo') { pPhoto(c, T, P, await paperImg(P.img)); out.push({ c, type: P.type, label: PAPER_TYPES.photo.label, name: `${String(++n).padStart(2, '0')}_photo.png` }); continue; }
     if (P.type === 'hand') { pHand(c, T, { _ink: await paperImg(P.img), _bg: await paperImg(P.bgimg) }); out.push({ c, type: P.type, label: PAPER_TYPES.hand.label, name: `${String(++n).padStart(2, '0')}_hand.png` }); continue; }
     ({ sign: pSign, qr: pQRPage, open: pStatus, brk: pStatus, soldout: pStatus, pay: pPay, next: pNext, free: pFree })[P.type](c, T, P, ctx);
     out.push({ c, type: P.type, label: PAPER_TYPES[P.type].label, name: `${String(++n).padStart(2, '0')}_${P.type}.png` });
@@ -2353,10 +2374,10 @@ function renderPaperControls() {
       ? `<label class="f" style="font-size:11.5px">${lab}<textarea class="in" rows="3" data-ppi="${i}" data-ppk="${k}">${esc(p[k])}</textarea></label>`
       : `<label class="f" style="font-size:11.5px">${lab}<input class="in" data-ppi="${i}" data-ppk="${k}" value="${esc(p[k])}"></label>`;
     return `<div class="pp-row${p.on ? '' : ' off'}"><div class="pp-h"><label class="chk" style="flex:1;margin:0"><input type="checkbox" data-pon="${i}"${p.on ? ' checked' : ''}><span><b>${t.label}</b>${t.note ? `<small style="margin-left:6px">${t.note}</small>` : ''}</span></label>
-      <button class="ib" data-ppmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-ppmv="${i},1" aria-label="下へ">▼</button>${p.type === 'free' || p.type === 'hand' ? `<button class="ib x" data-ppdel="${i}" aria-label="削除">×</button>` : ''}</div>
-      ${p.on && fields.length ? `<div class="pp-f">${fields.map(inp).join('')}</div>` : ''}${p.on && p.type === 'hand' ? `<div class="pp-hand"><div class="pp-thumb">${p.img || p.bgimg ? `${p.bgimg ? `<img src="${p.bgimg}" alt="">` : ''}${p.img ? `<img src="${p.img}" alt="">` : ''}` : '<span>未作成</span>'}</div><button class="btn" data-hdraw="${i}">${p.img || p.bgimg ? '描き直す・写真を変える' : '描く・写真から取り込む'}</button></div>` : ''}</div>`;
+      <button class="ib" data-ppmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-ppmv="${i},1" aria-label="下へ">▼</button>${p.type === 'free' || p.type === 'hand' || p.type === 'photo' ? `<button class="ib x" data-ppdel="${i}" aria-label="削除">×</button>` : ''}</div>
+      ${p.on && fields.length ? `<div class="pp-f">${fields.map(inp).join('')}</div>` : ''}${p.on && p.type === 'hand' ? `<div class="pp-hand"><div class="pp-thumb">${p.img || p.bgimg ? `${p.bgimg ? `<img src="${p.bgimg}" alt="">` : ''}${p.img ? `<img src="${p.img}" alt="">` : ''}` : '<span>未作成</span>'}</div><button class="btn" data-hdraw="${i}">${p.img || p.bgimg ? '描き直す・写真を変える' : '描く・写真から取り込む'}</button></div>` : ''}${p.on && p.type === 'photo' ? `<div class="pp-hand"><div class="pp-thumb" style="width:72px;height:72px">${p.img ? `<img src="${p.img}" alt="">` : '<span>未選択</span>'}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><label class="btn" style="cursor:pointer;text-align:center">${p.img ? '画像を変える' : '画像を選ぶ'}<input type="file" accept="image/*" data-pphoto="${i}" style="display:none"></label><div class="seg"><button data-pfit="${i},contain" class="${p.fit !== 'cover' ? 'on' : ''}">全体を表示</button><button data-pfit="${i},cover" class="${p.fit === 'cover' ? 'on' : ''}">画面いっぱい</button></div></div></div>` : ''}</div>`;
   }).join('');
-  $('paperAddFree').disabled = $('paperAddHand').disabled = S.paperPages.length >= MAX_PAPER;
+  $('paperAddFree').disabled = $('paperAddHand').disabled = $('paperAddPhoto').disabled = S.paperPages.length >= MAX_PAPER;
   document.querySelectorAll('[data-eor]').forEach(b => b.classList.toggle('on', b.dataset.eor === S.paperOrient));
   const ez = isEz(), [ow, oh] = paperOutDims(), [pw, ph] = [Math.min(ow, oh), Math.max(ow, oh)];
   $('paperDevs').innerHTML = PAPER_DEVS.map(d => `<button data-pdev="${d.id}" class="${paperDev().id === d.id ? 'on' : ''}"><b style="display:block">${d.label}</b><small>${d.sub}</small></button>`).join('');
@@ -2379,11 +2400,14 @@ $('paperPages').addEventListener('input', e => {
   S.paperPages[+i][t.dataset.ppk] = t.value; save(); schedulePaper();
 });
 $('paperPages').addEventListener('change', e => {
+  const ph = e.target.dataset.pphoto;
+  if (ph != null) { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) loadImage(f, { max: 1200, type: 'image/jpeg', quality: 0.86, budget: 700 * 1024 }, v => { if (S.paperPages[+ph]) { S.paperPages[+ph].img = v; renderAll(); } }); return; }
   const i = e.target.dataset.pon; if (i == null) return;
   S.paperPages[+i].on = e.target.checked; renderAll();
 });
 ['paperVert', 'paperLogo', 'paperFlip'].forEach(k => $(k).addEventListener('change', e => { S[k] = e.target.checked; renderAll(); }));
 $('paperAddHand').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'hand', on: true, title: '', sub: '', extra: '', body: '', img: '', bgimg: '' }); renderAll(); openHandPad(S.paperPages.length - 1); };
+$('paperAddPhoto').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'photo', on: true, title: '', sub: '', extra: '', body: '', img: '', bgimg: '', fit: 'contain' }); renderAll(); };
 $('paperAddFree').onclick = () => { if (S.paperPages.length >= MAX_PAPER) return; S.paperPages.push({ type: 'free', on: true, title: 'お知らせ', sub: '', extra: '', body: '' }); renderAll(); };
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
@@ -2392,6 +2416,7 @@ document.addEventListener('click', e => {
   else if (ds.pstyle) { S.paperStyle = ds.pstyle; renderAll(); }
   else if (ds.pdev) { S.paperDev = ds.pdev; if (ds.pdev !== 'diy' && S.paperOrient === 'port' && !S.paperDevSet) S.paperOrient = 'land'; S.paperDevSet = true; renderAll(); }
   else if (ds.ppal) { S.paperPal = ds.ppal; renderAll(); }
+  else if (ds.pfit) { const [i, f] = ds.pfit.split(','); if (S.paperPages[+i]) { S.paperPages[+i].fit = f; renderAll(); } }
   else if (ds.ptone) { S.paperTone = ds.ptone; renderAll(); }
   else if (ds.ppmv) { const [i, d] = ds.ppmv.split(',').map(Number), j = i + d; if (j < 0 || j >= S.paperPages.length) return; [S.paperPages[i], S.paperPages[j]] = [S.paperPages[j], S.paperPages[i]]; renderAll(); }
   else if (ds.ppdel != null) { S.paperPages.splice(+ds.ppdel, 1); renderAll(); }
