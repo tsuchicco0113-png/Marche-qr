@@ -5,6 +5,8 @@
   ・ボタンB：次の画面　ボタンA：前の画面　ボタンA長押し：最初の画面
   ・電源ボタンをダブルクリックすると電源が切れます。表示はそのまま残ります
   ・次に電源を入れると、最後に表示していた画面から始まります
+  ・操作しないまま AUTO_OFF_SEC 秒たつと、自動で電源が切れます（表示は残るので電池をほぼ使いません）
+    電源ボタンを1回押すと起動します。USBで書き込むときは、先に電源を入れておいてください
   ・Marché QR Maker の「PaperDIYに書き込む（USB）」から、USBケーブルで画像を受け取れます
 
   ビルド（Arduino IDE）
@@ -30,6 +32,9 @@
 // microSD（PaperDIYのピン配置）
 static constexpr int PIN_SD_SCK = 39, PIN_SD_MISO = 40, PIN_SD_MOSI = 38, PIN_SD_CS = 47;
 static const char *DIR = "/marche";
+// 操作がないとき自動で電源を切るまでの秒数（0 にすると切らない＝電池は約3時間）
+static constexpr uint32_t AUTO_OFF_SEC = 45;
+uint32_t lastActive = 0;
 
 fs::FS *store = nullptr;
 const char *storeName = "NONE";
@@ -161,7 +166,7 @@ static void handleCmd(String line) {
       if (avail <= 0) { delay(1); continue; }
       size_t want = std::min<long>(std::min<long>(avail, sizeof(buf)), size - got);
       size_t r = Serial.read(buf, want);
-      if (r > 0) { f.write(buf, r); got += r; t = millis(); }
+      if (r > 0) { f.write(buf, r); got += r; t = millis(); lastActive = t; }
     }
     f.close();
     if (got != size) { store->remove(path); Serial.println("ERR timeout"); return; }
@@ -179,6 +184,7 @@ static void handleCmd(String line) {
 
 static void pollSerial() {
   while (Serial.available()) {
+    lastActive = millis();
     char c = Serial.read();
     if (c == '\n' || c == '\r') {
       if (rx.length()) { String l = rx; rx = ""; handleCmd(l); }
@@ -197,13 +203,20 @@ void setup() {
   mountStorage();
   scanPages();
   showPage(cur);
+  lastActive = millis();
 }
 
 void loop() {
   M5.update();
+  if (M5.BtnA.isPressed() || M5.BtnB.isPressed()) lastActive = millis();
   if (M5.BtnB.wasClicked()) showPage(cur + 1);
   else if (M5.BtnA.wasHold()) showPage(0);
   else if (M5.BtnA.wasClicked()) showPage(cur - 1);
   pollSerial();
+  if (Serial) lastActive = millis();   // PCのブラウザが接続しているあいだは切らない
+  if (AUTO_OFF_SEC && millis() - lastActive > AUTO_OFF_SEC * 1000UL) {
+    M5.Display.waitDisplay();   // 描き替えが終わってから
+    M5.Power.powerOff();        // 電子ペーパーなので表示はそのまま残る
+  }
   delay(10);
 }
