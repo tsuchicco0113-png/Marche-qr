@@ -2182,9 +2182,17 @@ function pStatus(c, T, P, ctx) {
     if (kick) { x.fillStyle = T.kick; x.font = pf(400, 22); x.textAlign = 'left'; x.textBaseline = 'middle'; x.save(); x.translate(M + 18, top); x.rotate(Math.PI / 2); x.fillText(kick.split('').join(' '), 0, 0); x.restore(); }
     return;
   }
-  const fw = pFit(x, word, W - M * 2 - (P.type === 'soldout' ? 90 : 30), land ? 260 : 380, land ? 168 : 150, 48, wt, 2, 1.12);
-  const fs = pFit(x, sub, W - M * 2 - 30, 110, land ? 38 : 34, 18, 400, 2, 1.5), fbk = back ? pFit(x, back, W - M * 2 - 30, 70, land ? 48 : 44, 22, wt, 1) : null;
-  const kickH = kick ? 50 : 0, tot = kickH + fw.h + (fbk ? fbk.h + 26 : 0) + (sub ? fs.h + 40 : 0);
+  // 入りきらないとき（横置き・ロゴを上に置いたときなど）は、大きな文字から順に小さくして、下の店名に重ならないようにする
+  const avail = foot - T.top - 8, stamp = P.type === 'soldout' ? 42 : 0;
+  let wMax = land ? 168 : 150, sMax = land ? 38 : 34, bMax = land ? 48 : 44, fw, fs, fbk, kickH, tot;
+  for (let k = 0; k < 40; k++) {
+    fw = pFit(x, word, W - M * 2 - (P.type === 'soldout' ? 90 : 30), land ? 260 : 380, wMax, 40, wt, 2, 1.12);
+    fs = pFit(x, sub, W - M * 2 - 30, 110, sMax, 18, 400, 2, 1.5); fbk = back ? pFit(x, back, W - M * 2 - 30, 70, bMax, 22, wt, 1) : null;
+    kickH = kick ? (avail < 330 ? 38 : 50) : 0;
+    tot = kickH + stamp + fw.h + (fbk ? fbk.h + 20 : 0) + (sub ? fs.h + 34 : 0);
+    if (tot <= avail || wMax <= 40) break;
+    wMax -= 8; if (k % 3 === 2) { sMax = Math.max(20, sMax - 2); bMax = Math.max(24, bMax - 3); }
+  }
   let y = T.top + Math.max(0, (foot - T.top - tot) / 2);
   if (kick) { x.fillStyle = T.kick; x.font = pf(isEz() ? 700 : 400, 24); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(kick.split('').join(' '), W / 2, y + 16); y += kickH + (P.type === 'soldout' ? 22 : 0); }
   if (P.type === 'soldout') {   // ハンコ風の二重枠
@@ -2193,8 +2201,8 @@ function pStatus(c, T, P, ctx) {
     x.strokeStyle = T.acc; x.lineWidth = isHandStyle() ? 4 : 7; pBox(x, -bw / 2, -bh / 2, bw, bh, 18); x.lineWidth = 2; pBox(x, -bw / 2 + 11, -bh / 2 + 11, bw - 22, bh - 22, 10);
     x.fillStyle = T.acc; pDraw(x, fw, 0, -fw.h / 2, wt); x.restore(); y += fw.h + 20;
   } else { x.fillStyle = T.fg; y = pDraw(x, fw, W / 2, y, wt); }
-  if (fbk) { x.fillStyle = T.fg; y = pDraw(x, fbk, W / 2, y + 26, wt); }
-  if (sub) { pDiamondRule(x, T, W / 2, y + 22, 240); x.fillStyle = T.fg; pDraw(x, fs, W / 2, y + 40, 400); }
+  if (fbk) { x.fillStyle = T.fg; y = pDraw(x, fbk, W / 2, y + 20, wt); }
+  if (sub) { pDiamondRule(x, T, W / 2, y + 17, 240); x.fillStyle = T.fg; pDraw(x, fs, W / 2, y + 34, 400); }
 }
 function pPay(c, T, P, ctx) {
   const x = c.getContext('2d'), W = c.width, H = c.height, M = T.M, wt = paperWt(), land = W > H;
