@@ -16,9 +16,9 @@
     ツール → USB CDC On Boot：Enabled（USB書き込みを使うとき）
 
   USBの受け取り手順（1行ずつ、改行で区切る）
-    HELLO              → MARCHE-PAPER 1 <SD|FLASH>
+    HELLO              → MARCHE-PAPER 2 <SD|FLASH>
     CLR                → /marche の画像をすべて消す → OK
-    PUT <名前> <バイト数> → READY → （画像のバイト列）→ OK
+    PUT <名前> <バイト数> → READY → （1024バイトずつ送り、そのつど ACK を待つ）→ 最後に OK
     SHOW <番号>         → その画面を表示 → OK
     LS                 → ファイル名を1行ずつ → END
 */
@@ -37,6 +37,7 @@ static constexpr int PIN_SD_SCK = 39, PIN_SD_MISO = 40, PIN_SD_MOSI = 38, PIN_SD
 static const char *DIR = "/marche";
 // 操作がないとき自動で電源を切るまでの秒数（0 にすると切らない＝電池は約3時間）
 static constexpr uint32_t AUTO_OFF_SEC = 45;
+static constexpr size_t CHUNK = 1024;   // USBで受け取る1回分のバイト数（アプリ側と同じ）
 uint32_t lastActive = 0;
 
 fs::FS *store = nullptr;
@@ -144,7 +145,7 @@ static String safeName(const String &n) {
 
 static void handleCmd(String line) {
   line.trim();
-  if (line == "HELLO") { Serial.printf("MARCHE-PAPER 1 %s\n", storeName); return; }
+  if (line == "HELLO") { Serial.printf("MARCHE-PAPER 2 %s\n", storeName); return; }
   if (!store) { Serial.println("ERR nostore"); return; }
   if (line == "LS") {
     scanPages();
@@ -168,18 +169,27 @@ static void handleCmd(String line) {
     File f = store->open(path, FILE_WRITE);
     if (!f) { Serial.println("ERR open"); return; }
     Serial.println("READY");
-    static uint8_t buf[2048];
+    // 1024バイトずつ受け取り、フラッシュに書いてから ACK を返す（送る側はACKを待つので、受け取りがあふれない）
+    static uint8_t buf[CHUNK];
     long got = 0;
-    uint32_t t = millis();
-    while (got < size && millis() - t < 10000) {
-      int avail = Serial.available();
-      if (avail <= 0) { delay(1); continue; }
-      size_t want = std::min<long>(std::min<long>(avail, sizeof(buf)), size - got);
-      size_t r = Serial.read(buf, want);
-      if (r > 0) { f.write(buf, r); got += r; t = millis(); lastActive = t; }
+    bool ok = true;
+    while (got < size && ok) {
+      size_t want = std::min<long>(CHUNK, size - got), have = 0;
+      uint32_t t = millis();
+      while (have < want) {
+        int avail = Serial.available();
+        if (avail <= 0) { if (millis() - t > 5000) { ok = false; break; } delay(1); continue; }
+        size_t r = Serial.read(buf + have, std::min<size_t>(avail, want - have));
+        if (r > 0) { have += r; t = millis(); }
+      }
+      if (!ok) break;
+      if (f.write(buf, have) != have) { ok = false; break; }
+      got += have;
+      lastActive = millis();
+      Serial.println("ACK");
     }
     f.close();
-    if (got != size) { store->remove(path); Serial.println("ERR timeout"); return; }
+    if (!ok || got != size) { store->remove(path); Serial.println(ok ? "ERR size" : "ERR timeout"); return; }
     Serial.println("OK");
     return;
   }
@@ -203,7 +213,7 @@ static void pollSerial() {
 }
 
 void setup() {
-  Serial.setRxBufferSize(8192);
+  Serial.setRxBufferSize(4096);   // 1回分（1024バイト）が余裕で入る大きさ
   auto cfg = M5.config();
   cfg.clear_display = false;   // 前の表示を消さずに起動
   cfg.serial_baudrate = 115200;
