@@ -2,6 +2,7 @@
   MarcheDisplay — Marché QR Maker の画面を M5Stack PaperDIY に表示するスケッチ
 
   ・microSD（なければ本体のフラッシュ）の /marche/*.png を、名前順に表示します
+    本体のフラッシュは「ツール → Partition Scheme」に SPIFFS か FATFS の領域があるときに使えます
   ・ボタンB：次の画面　ボタンA：前の画面　ボタンA長押し：最初の画面
   ・電源ボタンをダブルクリックすると電源が切れます。表示はそのまま残ります
   ・次に電源を入れると、最後に表示していた画面から始まります
@@ -25,6 +26,7 @@
 #include <SPI.h>
 #include <SD.h>
 #include <LittleFS.h>
+#include <FFat.h>
 #include <M5Unified.h>
 #include <Preferences.h>
 #include <vector>
@@ -47,7 +49,8 @@ String rx;
 static void mountStorage() {
   SPI.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_CS);
   if (SD.begin(PIN_SD_CS, SPI, 20000000)) { store = &SD; storeName = "SD"; }
-  else if (LittleFS.begin(true)) { store = &LittleFS; storeName = "FLASH"; }
+  else if (LittleFS.begin(true)) { store = &LittleFS; storeName = "FLASH"; }            // 名前に SPIFFS が付く区画
+  else if (FFat.begin(true)) { store = &FFat; storeName = "FLASH"; }                      // 名前に FATFS が付く区画
   if (store && !store->exists(DIR)) store->mkdir(DIR);
 }
 
@@ -95,8 +98,14 @@ static void showMessage() {
   int cx = M5.Display.width() / 2, cy = M5.Display.height() / 2;
   M5.Display.drawString("Marche QR Maker", cx, cy - 70);
   M5.Display.drawString("表示する画像がありません", cx, cy - 10);
-  M5.Display.drawString(store ? "microSDの marche フォルダに" : "microSDを確認してください", cx, cy + 30);
-  if (store) M5.Display.drawString("PNGを入れてください", cx, cy + 62);
+  if (store) {
+    M5.Display.drawString("microSDの marche フォルダに", cx, cy + 30);
+    M5.Display.drawString("PNGを入れてください", cx, cy + 62);
+  } else {
+    M5.Display.drawString("保存先がありません", cx, cy + 30);
+    M5.Display.drawString("microSDを差すか、Partition Scheme を", cx, cy + 62);
+    M5.Display.drawString("SPIFFS / FATFS 付きにしてください", cx, cy + 94);
+  }
   M5.Display.endWrite();
   M5.Display.waitDisplay();
 }
