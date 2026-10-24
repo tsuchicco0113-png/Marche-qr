@@ -1699,6 +1699,16 @@ function pPhoto(c, T, P, img) {   // 写真・イラスト：画像の範囲は�
   }
   if (!img) { x.fillStyle = T.mid; x.font = pf(400, 26); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('画像を選んでください', W / 2, ih / 2); return; }
   const iw = img.naturalWidth || img.width, hh = img.naturalHeight || img.height;
+  if (P.pixel) {   // ドット絵：端末のドットに対して整数倍で、ぼかさずに拡大（ディザもかけない）
+    const k = paperScale(), Wo = W / k, Ho = ih / k, pad = cap ? 8 : 0;
+    let n = P.fit === 'cover' ? Math.ceil(Math.max(Wo / iw, Ho / hh)) : Math.floor(Math.min((Wo - pad * 2) / iw, (Ho - pad * 2) / hh));
+    if (n < 1) n = Math.min((Wo - pad * 2) / iw, (Ho - pad * 2) / hh);   // 画面より大きい絵は、そのまま縮める
+    const dw = iw * n * k, dh = hh * n * k, al = v => Math.round(v / k) * k;
+    x.save(); x.beginPath(); x.rect(0, 0, W, ih); x.clip(); x.imageSmoothingEnabled = false;
+    if (T.inv && P.fit !== 'cover') { x.fillStyle = '#fff'; x.fillRect(al((W - dw) / 2), al((ih - dh) / 2), dw, dh); }
+    x.drawImage(img, al((W - dw) / 2), al((ih - dh) / 2), dw, dh); x.restore();
+    return;
+  }
   if (P.fit === 'cover') {
     const k = Math.max(W / iw, ih / hh), dw = iw * k, dh = hh * k;
     x.save(); x.beginPath(); x.rect(0, 0, W, ih); x.clip(); x.drawImage(img, (W - dw) / 2, (ih - dh) / 2, dw, dh); x.restore();
@@ -1853,7 +1863,7 @@ function paperPagesClean(a) {
   const src = Array.isArray(a) ? a : PAPER_DEF_PAGES;
   const s = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
   const out = src.filter(p => p && PAPER_TYPES[p.type]).slice(0, MAX_PAPER)
-    .map(p => ({ type: p.type, on: p.on !== false, title: s(p.title, 60), sub: s(p.sub, 160), extra: s(p.extra, 200), body: s(p.body, 800), img: okImg(p.img), bgimg: okImg(p.bgimg), fit: p.fit === 'cover' ? 'cover' : 'contain' }));
+    .map(p => ({ type: p.type, on: p.on !== false, title: s(p.title, 60), sub: s(p.sub, 160), extra: s(p.extra, 200), body: s(p.body, 800), img: okImg(p.img), bgimg: okImg(p.bgimg), fit: p.fit === 'cover' ? 'cover' : 'contain', pixel: !!p.pixel }));
   return out.length ? out : paperPagesClean(PAPER_DEF_PAGES);
 }
 S.paperPages = paperPagesClean(S.paperPages);
@@ -2492,7 +2502,7 @@ function renderPaperControls() {
       : `<label class="f" style="font-size:11.5px">${lab}<input class="in" data-ppi="${i}" data-ppk="${k}" value="${esc(p[k])}"></label>`;
     return `<div class="pp-row${p.on ? '' : ' off'}"><div class="pp-h"><label class="chk" style="flex:1;margin:0"><input type="checkbox" data-pon="${i}"${p.on ? ' checked' : ''}><span><b>${t.label}</b>${t.note ? `<small style="margin-left:6px">${t.note}</small>` : ''}</span></label>
       <button class="ib" data-ppmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-ppmv="${i},1" aria-label="下へ">▼</button>${p.type === 'free' || p.type === 'hand' || p.type === 'photo' ? `<button class="ib x" data-ppdel="${i}" aria-label="削除">×</button>` : ''}</div>
-      ${p.on && fields.length ? `<div class="pp-f">${fields.map(inp).join('')}</div>` : ''}${p.on && p.type === 'hand' ? `<div class="pp-hand"><div class="pp-thumb">${p.img || p.bgimg ? `${p.bgimg ? `<img src="${p.bgimg}" alt="">` : ''}${p.img ? `<img src="${p.img}" alt="">` : ''}` : '<span>未作成</span>'}</div><button class="btn" data-hdraw="${i}">${p.img || p.bgimg ? '描き直す・写真を変える' : '描く・写真から取り込む'}</button></div>` : ''}${p.on && p.type === 'photo' ? `<div class="pp-hand"><div class="pp-thumb" style="width:72px;height:72px">${p.img ? `<img src="${p.img}" alt="">` : '<span>未選択</span>'}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><label class="btn" style="cursor:pointer;text-align:center">${p.img ? '画像を変える' : '画像を選ぶ'}<input type="file" accept="image/*" data-pphoto="${i}" style="display:none"></label><div class="seg"><button data-pfit="${i},contain" class="${p.fit !== 'cover' ? 'on' : ''}">全体を表示</button><button data-pfit="${i},cover" class="${p.fit === 'cover' ? 'on' : ''}">画面いっぱい</button></div></div></div>` : ''}</div>`;
+      ${p.on && fields.length ? `<div class="pp-f">${fields.map(inp).join('')}</div>` : ''}${p.on && p.type === 'hand' ? `<div class="pp-hand"><div class="pp-thumb">${p.img || p.bgimg ? `${p.bgimg ? `<img src="${p.bgimg}" alt="">` : ''}${p.img ? `<img src="${p.img}" alt="">` : ''}` : '<span>未作成</span>'}</div><button class="btn" data-hdraw="${i}">${p.img || p.bgimg ? '描き直す・写真を変える' : '描く・写真から取り込む'}</button></div>` : ''}${p.on && p.type === 'photo' ? `<div class="pp-hand"><div class="pp-thumb" style="width:72px;height:72px">${p.img ? `<img src="${p.img}" alt="">` : '<span>未選択</span>'}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><label class="btn" style="cursor:pointer;text-align:center">${p.img ? '画像を変える' : '画像を選ぶ'}<input type="file" accept="image/*" data-pphoto="${i}" style="display:none"></label><div class="seg"><button data-pfit="${i},contain" class="${p.fit !== 'cover' ? 'on' : ''}">全体を表示</button><button data-pfit="${i},cover" class="${p.fit === 'cover' ? 'on' : ''}">画面いっぱい</button></div><label class="chk" style="font-size:12px;margin:0"><input type="checkbox" data-ppix="${i}"${p.pixel ? ' checked' : ''}><span>ドット絵（ぼかさず整数倍で拡大）</span></label></div></div>` : ''}</div>`;
   }).join('');
   $('paperAddFree').disabled = $('paperAddHand').disabled = $('paperAddPhoto').disabled = S.paperPages.length >= MAX_PAPER;
   document.querySelectorAll('[data-eor]').forEach(b => b.classList.toggle('on', b.dataset.eor === S.paperOrient));
@@ -2523,7 +2533,18 @@ $('paperPages').addEventListener('input', e => {
 });
 $('paperPages').addEventListener('change', e => {
   const ph = e.target.dataset.pphoto;
-  if (ph != null) { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) loadImage(f, { max: 1200, type: 'image/jpeg', quality: 0.86, budget: 700 * 1024 }, v => { if (S.paperPages[+ph]) { S.paperPages[+ph].img = v; renderAll(); } }); return; }
+  if (ph != null) {
+    const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    const P = S.paperPages[+ph]; if (!P) return;
+    if (f.type === 'image/png' && f.size <= 700 * 1024) {   // PNGはそのまま（ドット絵がJPEGでにじまないように）
+      const r = new FileReader();
+      r.onload = () => { const im = new Image(); im.onload = () => { P.img = r.result; P.pixel = im.naturalWidth <= 256 && im.naturalHeight <= 256; renderAll(); if (P.pixel) toast('小さなPNGなので「ドット絵」で拡大しました'); }; im.src = r.result; };
+      r.readAsDataURL(f);
+    } else loadImage(f, { max: 1200, type: 'image/jpeg', quality: 0.86, budget: 700 * 1024 }, v => { P.img = v; P.pixel = false; renderAll(); });
+    return;
+  }
+  const px = e.target.dataset.ppix;
+  if (px != null) { if (S.paperPages[+px]) { S.paperPages[+px].pixel = e.target.checked; renderAll(); } return; }
   const i = e.target.dataset.pon; if (i == null) return;
   S.paperPages[+i].on = e.target.checked; renderAll();
 });
