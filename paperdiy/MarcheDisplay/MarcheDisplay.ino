@@ -21,10 +21,11 @@
     SHOW <番号>         → その画面を表示 → OK
     LS                 → ファイル名を1行ずつ → END
 */
-#include <M5Unified.h>
+// SD / LittleFS は M5Unified より「先に」読み込む（M5GFX がファイルから PNG を描けるようになる）
 #include <SPI.h>
 #include <SD.h>
 #include <LittleFS.h>
+#include <M5Unified.h>
 #include <Preferences.h>
 #include <vector>
 #include <algorithm>
