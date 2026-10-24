@@ -3,8 +3,9 @@
 
   ・microSD（なければ本体のフラッシュ）の /marche/*.png を、名前順に表示します
     本体のフラッシュは「ツール → Partition Scheme」に SPIFFS か FATFS の領域があるときに使えます
-  ・ボタンB：次の画面　ボタンA：前の画面　ボタンA長押し：最初の画面
-  ・電源ボタンをダブルクリックすると電源が切れます。表示はそのまま残ります
+  ・ボタンB：次の画面　ボタンA：前の画面　ボタンA長押し：最初の画面　ボタンB長押し：電源オフ
+  ・電源が入っている間は、画面の右上に小さな「●」が出ます。電源を切るときは「●」を消してから切ります
+    （「●」が無ければ電源オフ。電源ボタンのダブルクリックで切ったときだけは「●」が残ります）
   ・次に電源を入れると、最後に表示していた画面から始まります
   ・操作しないまま AUTO_OFF_SEC 秒たつと、自動で電源が切れます（表示は残るので電池をほぼ使いません）
     電源ボタンを1回押すと起動します。USBで書き込むときは、先に電源を入れておいてください
@@ -37,7 +38,8 @@ static constexpr int PIN_SD_SCK = 39, PIN_SD_MISO = 40, PIN_SD_MOSI = 38, PIN_SD
 static const char *DIR = "/marche";
 // 操作がないとき自動で電源を切るまでの秒数（0 にすると切らない＝電池は約3時間）
 static constexpr uint32_t AUTO_OFF_SEC = 45;
-static constexpr size_t CHUNK = 1024;   // USBで受け取る1回分のバイト数（アプリ側と同じ）
+static constexpr size_t CHUNK = 1024;
+static constexpr bool SHOW_BADGE = true;   // 電源オンの印（右上の●）を出す   // USBで受け取る1回分のバイト数（アプリ側と同じ）
 uint32_t lastActive = 0;
 
 fs::FS *store = nullptr;
@@ -111,8 +113,20 @@ static void showMessage() {
   M5.Display.waitDisplay();
 }
 
-static void showPage(int i) {
-  if (pages.empty()) { showMessage(); return; }
+// 電源オンの印：右上に小さな●（速い部分書き換えで描く）
+static void drawBadge() {
+  if (!SHOW_BADGE) return;
+  int x = M5.Display.width() - 16, y = 16;
+  M5.Display.setEpdMode(epd_mode_t::epd_fastest);
+  M5.Display.startWrite();
+  M5.Display.fillCircle(x, y, 10, TFT_WHITE);
+  M5.Display.fillCircle(x, y, 6, TFT_BLACK);
+  M5.Display.endWrite();
+  M5.Display.waitDisplay();
+}
+
+static void showPage(int i, bool badge = true) {
+  if (pages.empty()) { showMessage(); if (badge) drawBadge(); return; }
   int n = pages.size();
   cur = ((i % n) + n) % n;
   const String &p = pages[cur];
@@ -131,6 +145,14 @@ static void showPage(int i) {
   M5.Display.endWrite();
   M5.Display.waitDisplay();
   prefs.putInt("cur", cur);
+  if (badge) drawBadge();
+}
+
+// 印を消して（画面を描き直して）から電源を切る。表示はそのまま残る
+static void powerOffClean() {
+  showPage(cur, false);
+  delay(200);
+  M5.Power.powerOff();
 }
 
 static String safeName(const String &n) {
@@ -229,14 +251,14 @@ void setup() {
 void loop() {
   M5.update();
   if (M5.BtnA.isPressed() || M5.BtnB.isPressed()) lastActive = millis();
-  if (M5.BtnB.wasClicked()) showPage(cur + 1);
+  if (M5.BtnB.wasHold()) powerOffClean();
+  else if (M5.BtnB.wasClicked()) showPage(cur + 1);
   else if (M5.BtnA.wasHold()) showPage(0);
   else if (M5.BtnA.wasClicked()) showPage(cur - 1);
   pollSerial();
   if (Serial) lastActive = millis();   // PCのブラウザが接続しているあいだは切らない
   if (AUTO_OFF_SEC && millis() - lastActive > AUTO_OFF_SEC * 1000UL) {
-    M5.Display.waitDisplay();   // 描き替えが終わってから
-    M5.Power.powerOff();        // 電子ペーパーなので表示はそのまま残る
+    powerOffClean();            // 印を消してから切る。電子ペーパーなので表示はそのまま残る
   }
   delay(10);
 }
