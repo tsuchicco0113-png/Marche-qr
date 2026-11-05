@@ -156,7 +156,7 @@ main{min-width:0;overflow:auto;background:var(--stage);padding:28px 24px 48px;di
 .phone-in .lp{min-height:100%}
 
 /* ===== card (mm) ===== */
-.card{width:91mm;height:55mm;padding:5mm;display:flex;gap:4mm;align-items:stretch;background:#fff;overflow:hidden;position:relative}
+.card{--hide:0mm;width:91mm;height:55mm;padding:5mm 5mm max(5mm, calc(var(--hide) + 1.5mm));display:flex;gap:4mm;align-items:stretch;background:#fff;overflow:hidden;position:relative}
 .card .l{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:1.5mm}
 .card .logo{height:7mm;max-width:100%;object-fit:contain;object-position:left center;display:block;align-self:flex-start}
 .card .brand{font-size:12pt;font-weight:700;line-height:1.25;letter-spacing:.04em;word-break:break-word}
@@ -169,7 +169,7 @@ main{min-width:0;overflow:auto;background:var(--stage);padding:28px 24px 48px;di
 .card svg{display:block}
 .card .qrl{font-size:5.5pt;letter-spacing:.06em;text-align:center;line-height:1.35}
 /* tall 55×91 */
-.card.tall{width:55mm;height:91mm;flex-direction:column;align-items:center;text-align:center;gap:2.5mm;padding:6mm 5mm 5mm}
+.card.tall{width:55mm;height:91mm;flex-direction:column;align-items:center;text-align:center;gap:2.5mm;padding:6mm 5mm max(5mm, calc(var(--hide) + 1.5mm))}
 .card.tall .logo{align-self:center;object-position:center;height:8mm}
 .card.tall .brand{font-size:11pt}
 .card.tall .bio{-webkit-line-clamp:3}
@@ -182,7 +182,7 @@ main{min-width:0;overflow:auto;background:var(--stage);padding:28px 24px 48px;di
 .card .ph.dragging{cursor:grabbing}
 .card .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
 .card .ph-empty{background:repeating-linear-gradient(45deg,#e6e1d8 0 2mm,#efebe4 2mm 4mm);display:flex;align-items:center;justify-content:center;font-size:7pt;color:#8a8379}
-.card.photo .pr{flex:1;min-width:0;padding:4.5mm 4.5mm 4mm;display:flex;flex-direction:column;gap:1.4mm}
+.card.photo .pr{flex:1;min-width:0;padding:4.5mm 4.5mm max(4mm, calc(var(--hide) + 1.5mm));display:flex;flex-direction:column;gap:1.4mm}
 .card.photo .brand{font-size:10.5pt}
 .card.photo .bio{-webkit-line-clamp:2;font-size:6.3pt}
 .card.photo .prow{margin-top:auto;display:flex;gap:2.5mm;align-items:flex-end}
@@ -191,7 +191,7 @@ main{min-width:0;overflow:auto;background:var(--stage);padding:28px 24px 48px;di
 /* photo background */
 .card.photobg{padding:0}
 .card.photobg > .ph{position:absolute;inset:0;width:auto;height:auto}
-.card.photobg .pn{z-index:1;position:absolute;right:3.5mm;top:3.5mm;bottom:3.5mm;width:39mm;border-radius:1.6mm;padding:3.5mm 3mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4mm;text-align:center}
+.card.photobg .pn{z-index:1;position:absolute;right:3.5mm;top:3.5mm;bottom:max(3.5mm, calc(var(--hide) + 1mm));width:39mm;border-radius:1.6mm;padding:3.5mm 3mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4mm;text-align:center}
 .card.photobg .logo{align-self:center;object-position:center;height:6mm}
 .card.photobg .brand{font-size:9pt}
 .card.photobg .ph-empty{position:absolute;inset:0}
@@ -224,8 +224,8 @@ body.viewing #viewer{display:block;min-height:100vh}
 body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .lp-err{max-width:420px;margin:80px auto;padding:0 24px;text-align:center;font-size:14px;line-height:1.9;color:var(--ink)}
 
-.card.pc{--u:1;display:flex;flex-direction:column;align-items:stretch;gap:calc(var(--u)*1.2mm);padding:calc(var(--u)*5mm) calc(var(--u)*6mm);text-align:center}
-.card.pc .pc-frame{position:absolute;inset:calc(var(--u)*2.2mm);border:.25mm solid currentColor;opacity:.5;pointer-events:none}
+.card.pc{--u:1;display:flex;flex-direction:column;align-items:stretch;gap:calc(var(--u)*1.2mm);padding:calc(var(--u)*5mm) calc(var(--u)*6mm) max(calc(var(--u)*5mm), calc(var(--hide) + 1.5mm));text-align:center}
+.card.pc .pc-frame{position:absolute;inset:calc(var(--u)*2.2mm) calc(var(--u)*2.2mm) max(calc(var(--u)*2.2mm), calc(var(--hide) + .5mm));border:.25mm solid currentColor;opacity:.5;pointer-events:none}
 .card.pc .pc-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.6mm)}
 .card.pc.left .pc-body{align-items:flex-start;text-align:left}
 .card.pc .pc-name{font-size:calc(var(--u)*var(--fn,1)*11pt);font-weight:700;line-height:1.3;letter-spacing:.05em;word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
@@ -260,6 +260,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 /* ===== print ===== */
 #print{display:none}
 @page{size:A4 portrait;margin:0}
+.hidezone{position:absolute;left:0;right:0;bottom:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(181,83,47,.20) 0 1.2mm,rgba(181,83,47,.06) 1.2mm 2.4mm);border-top:.3mm dashed #b5532f;display:flex;align-items:center;justify-content:center;font:600 5pt 'Zen Kaku Gothic New',sans-serif;color:#8e3f22;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
 @media print{
   html,body{width:210mm;background:#fff!important}
   .app{display:none!important}
@@ -303,6 +304,13 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <p class="hint" id="bizHint">スキャンすると相手のスマホの連絡先に、あなたの名前・屋号・電話・メールがそのまま登録されます（vCard形式）。名刺交換や卸先とのやり取りに。</p>
       <p class="hint" style="margin:0">電子ペーパー（PaperDIY・EZ Sign）の画面づくりは <a href="https://tsuchicco0113-png.github.io/Marche-qr-DIGITAL/" target="_blank" rel="noopener">Marché QR DIGITAL</a> に分かれました。</p>
     </div>
+
+    <details class="acc" id="secStand" data-sec="stand"><summary><h2>立てるスタンド（HEXA STAGE）</h2><span class="sm" id="sm-stand"></span></summary><div class="acc-body">
+      <div class="seg" id="stands"></div>
+      <p class="hint" id="standHint"></p>
+      <p class="warn" id="standWarn" hidden></p>
+      <button class="btn" id="standFit" hidden>スタンドに合うサイズにする</button>
+    </div></details>
 
     <details class="acc" data-sec="basic"><summary><h2>基本情報</h2><span class="sm" id="sm-basic"></span></summary><div class="acc-body">
       <label class="f"><span id="brandLabel">屋号</span><input class="in" id="brand"></label>
@@ -802,7 +810,8 @@ const DEF = {
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
   priceFs: { name: 100, price: 100, note: 100, shop: 100 },
-  open: { basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
+  stand: 'none',
+  open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
 let S = JSON.parse(DEF0);
@@ -864,7 +873,31 @@ const isBiz = () => S.purpose === 'biz';
 const isPrice = () => S.purpose === 'price';
 
 /* ---- price cards ---- */
-const PSIZES = [{ id: 'meishi', label: '名刺 91×55', w: 91, h: 55 }, { id: 'a7', label: 'A7 105×74', w: 105, h: 74 }, { id: 'l', label: 'L判 127×89', w: 127, h: 89 }, { id: 'custom', label: 'サイズを指定' }];
+/* 値札のサイズ：HEXA STAGE のスタンドの寸法に合わせる（w×h は横向きのとき） */
+const PSIZES = [{ id: 'meishi', label: '名刺 91×55', w: 91, h: 55 }, { id: 'half', label: '名刺半分 55×45.5', w: 55, h: 45.5 }, { id: 'a8', label: 'A8 74×52', w: 74, h: 52 },
+  { id: 'a7', label: 'A7 105×74', w: 105, h: 74 }, { id: 'sq80', label: '正方形 80×80', w: 80, h: 80 }, { id: 'hagaki', label: 'はがき 148×100', w: 148, h: 100 },
+  { id: 'l', label: 'L判 127×89', w: 127, h: 89 }, { id: 'custom', label: 'サイズを指定' }];
+/* HEXA STAGE のスタンド（hexa-stage-app の SCAD と同じ寸法）
+   hide：カードの下端が溝とリップに隠れる高さ [mm]。fits：そのまま差せるカード [横, 縦]（mm） */
+const STANDS = [
+  { id: 'none', label: 'なし', hide: 0 },
+  { id: 'card', label: '名刺スタンド', hide: 5, note: '45°に寝かせる・溝4mm。名刺91×55（縦55×91も可）。溝を「貫通」にすれば横幅は自由（はがき横なら本体の幅155）',
+    fits: [[91, 55], [55, 91]], maxW: 91 },
+  { id: 'tag', label: '小さな値札スタンド', hide: 5, note: '45°に寝かせる・溝4mm。名刺半分55×45.5／A8縦52×74／A8横74×52',
+    fits: [[55, 45.5], [52, 74], [74, 52]], size: { half: 'land', a8: 'land' } },
+  { id: 'qr', label: 'QR決済＋名刺スタンド', hide: 9, note: '70°で立てる・溝8mm。A7縦74×105／名刺縦55×91／正方形80×80／はがき縦100×148。手前のトレイは名刺91×55',
+    fits: [[74, 105], [55, 91], [80, 80], [100, 148]] }];
+const standOf = () => STANDS.find(x => x.id === S.stand) || STANDS[0];
+const standHide = () => standOf().hide;
+const near = (a, b) => Math.abs(a - b) < 0.6;
+function standFit(w, h) {   // そのまま差せるか → { ok, msg }
+  const st = standOf(); if (st.id === 'none') return { ok: true };
+  if (st.fits.some(([fw, fh]) => near(fw, w) && near(fh, h))) return { ok: true };
+  if (st.id === 'card') return w <= 91.5 ? { ok: true } : { ok: false, msg: `横${w}mmは名刺スタンドの溝（92mm・両端を閉じた形）に入りません。スタンドの「溝の両端」を貫通にして、横幅を${Math.ceil(w + 9)}mm以上で刷ってください。` };
+  if (st.id === 'tag') return { ok: false, msg: `値札スタンドの溝は、名刺半分（横55）・A8縦（横52）・A8横（横74）用です。いまのカードは横${w}×縦${h}mmです。` };
+  if (!isPrice()) return { ok: false, msg: 'QR決済スタンドに名刺を立てるときは、縦（55×91）で差します。名刺レイアウトを「縦型」にしてください（横の名刺は、手前のトレイに置けます）。' };
+  return { ok: false, msg: `QR決済スタンドの「QRカードの大きさ」を「下の数値（custom）」にして、横${w}・縦${h}mmで刷ってください（標準はA7縦・名刺縦・正方形80・はがき縦）。` };
+}
 function priceDims() {
   if (S.priceSize === 'custom') return [Math.min(190, Math.max(25, +S.priceW || 90)), Math.min(280, Math.max(25, +S.priceH || 60))];
   const p = PSIZES.find(x => x.id === S.priceSize) || PSIZES[0];
@@ -897,7 +930,7 @@ function priceCardHtml(it, q, pw, ph, extra) {
   const who = S.priceShop && (logo || clean(S.brand)) ? `<div class="pc-who">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : ''}<span>${esc(clean(S.brand))}</span></div>` : '';
   const qrBox = S.priceQr && q ? `<div class="pc-qr">${qrSvg(q, col, 0, '', qrBg).replace('<svg ', '<svg style="width:calc(var(--u)*13mm);height:calc(var(--u)*13mm);flex:none" ')}${clean(S.qrLabel) ? `<div class="qrl">${esc(clean(S.qrLabel))}</div>` : ''}</div>` : '';
   const foot = who || qrBox ? `<div class="pc-foot${qrBox ? '' : ' noqr'}">${who}${qrBox}</div>` : '';
-  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
+  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--hide:${standHide()}mm;--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
     ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}${guideHtml}</div>${foot}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
 }
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
@@ -911,6 +944,11 @@ function sheetGeom() {
 /* business mode has no photo layouts → fall back to 横・標準 */
 const effLayout = () => isBiz() && /^photo/.test(S.layout) ? 'std' : S.layout;
 
+/* 見本だけ：スタンドの溝で隠れる下の端に斜線（印刷用の buildSheet には入れない） */
+function markHidden(box) {
+  const hide = standHide(); if (!hide) return;
+  box.querySelectorAll('.card').forEach(c => { const z = document.createElement('div'); z.className = 'hidezone'; z.style.height = hide + 'mm'; z.textContent = 'スタンドで隠れる'; c.appendChild(z); });
+}
 /* vCard 3.0 (UTF-8) — read by iPhone camera and Android camera/Lens */
 const vEsc = v => String(v).replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
 function buildVcard(photoB64, ver) {
@@ -1016,7 +1054,7 @@ function cardHtml(q) {
   const pz = S.photoZoom || 1, pp = (S.photoX ?? 50) + '% ' + (S.photoY ?? 50) + '%';
   const photoDiv = S.photo ? `<div class="ph" data-ph><img src="${S.photo}" alt="" draggable="false" style="object-position:${pp};transform:scale(${pz});transform-origin:${pp}"></div>` : '';
   const phEmpty = '<div class="ph ph-empty"><span>写真</span></div>';
-  const root = (cls, style, inner) => `<div class="card ${cls}" style="color:${col};font-family:${FONTS[S.font].family};${style}">${inner}</div>`;
+  const root = (cls, style, inner) => `<div class="card ${cls}" style="--hide:${standHide()}mm;color:${col};font-family:${FONTS[S.font].family};${style}">${inner}</div>`;
 
   if (isBiz()) {
     const v = k => clean(S[k]);
@@ -1109,9 +1147,26 @@ function renderPriceControls() {
   $('priceQrHint').hidden = !S.priceQr;
   [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => { $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%'; });
   const [pw, ph] = priceDims(), per = (a, b) => S.priceSize === 'meishi' ? 10 : Math.floor(198 / a) * Math.floor(285 / b), now = per(pw, ph), alt = per(ph, pw);
-  $('priceSizeHint').textContent = `A4 1ページに ${now} 枚。` + (!cu && alt > now ? `向きを変えると ${alt} 枚になります。` : '') + (S.priceSize === 'meishi' ? '（名刺サイズのミシン目入り用紙 品番51072に合わせた割り付けです）' : '');
+  const SIZE_STAND = { meishi: '名刺スタンド', half: '値札スタンド（名刺半分）', a8: '値札スタンド（横向き＝A8横／縦向き＝A8縦）', a7: 'QR決済スタンド（縦向き＝A7縦）', sq80: 'QR決済スタンド（正方形80）', hagaki: 'QR決済スタンド（縦向き＝はがき縦）・名刺スタンドの幅155（横向き）' };
+  $('priceSizeHint').textContent = `A4 1ページに ${now} 枚。` + (!cu && alt > now ? `向きを変えると ${alt} 枚になります。` : '') + (S.priceSize === 'meishi' ? '（名刺サイズのミシン目入り用紙 品番51072に合わせた割り付けです）' : '') + (SIZE_STAND[S.priceSize] ? `合うスタンド：${SIZE_STAND[S.priceSize]}。` : '');
 }
 const LAYOUT_NAME = Object.fromEntries(LAYOUTS.map(l => [l.id, l.label]));
+function renderStand() {
+  const st = standOf(), price = isPrice(), [w, h] = price ? priceDims() : CARD_DIM(effLayout()), f = standFit(w, h);
+  $('stands').innerHTML = STANDS.map(x => `<button data-stand="${x.id}" class="${st.id === x.id ? 'on' : ''}">${x.label}</button>`).join('');
+  $('standHint').textContent = st.id === 'none' ? 'スタンドに立てるときに選ぶと、カードの下の端（溝に隠れる所）に文字やQRが入らないように余白をとります。プレビューでは隠れる所に斜線が出ます（印刷はされません）。'
+    : `${st.note}。カードの下 約${st.hide}mm が溝に隠れるので、そこには文字やQRを置きません。`;
+  $('standWarn').hidden = f.ok; $('standWarn').textContent = f.msg || '';
+  $('standFit').hidden = f.ok;
+  $('sm-stand') && ($('sm-stand').textContent = st.id === 'none' ? 'なし' : st.label);
+}
+$('standFit').onclick = () => {
+  const id = S.stand;
+  if (isPrice()) Object.assign(S, id === 'tag' ? { priceSize: 'half', priceOrient: 'land' } : id === 'qr' ? { priceSize: 'a7', priceOrient: 'port' } : { priceSize: 'meishi', priceOrient: 'land' });
+  else if (id === 'qr') S.layout = 'tall';
+  else if (id === 'card') S.layout = 'std';
+  renderAll();
+};
 function renderControls() {
   const biz = isBiz(), price = isPrice(), shopCard = !biz && !price && S.mode === 'card', shopUrl = (!biz && !price && S.mode === 'url') || (price && S.priceQr);
   document.querySelectorAll('[data-purpose]').forEach(b => b.classList.toggle('on', b.dataset.purpose === S.purpose));
@@ -1176,6 +1231,7 @@ function syncFields() { if (document.activeElement !== $('priceW')) $('priceW').
 let seq = 0;
 async function renderPreview() {
   const my = ++seq;
+  renderStand();
   let target = '', warn = '', costHtml = '', photoInQr = false;
   if (isPrice()) {
     target = S.priceQr ? fullUrl((S.url || '').trim()) : '';
@@ -1263,6 +1319,7 @@ async function renderPreview() {
   if (isPrice()) {
     const [pw, ph] = priceDims(), list = priceItemsClean(), sc = Math.max(0.5, Math.min(1.6, 330 / (pw * 3.7795), 440 / (ph * 3.7795)));
     $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div><button class="btn" data-pprint="${list.indexOf(it)}">この商品だけ印刷（${priceCopies(it) || pricePer()}枚）</button></div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
+    markHidden($('priceList'));
     $('priceInfo').textContent = `${pw} × ${ph} mm・${list.length}種／${priceExpanded().length}枚`;
   }
   // card
@@ -1270,6 +1327,7 @@ async function renderPreview() {
   const sc = effLayout() === 'tall' ? 1.25 : (window.innerWidth > 1300 ? 1.35 : 1.05);
   holder.style.width = Math.round(cw * 3.7795 * sc) + 'px'; holder.style.height = Math.round(ch * 3.7795 * sc) + 'px';
   holder.innerHTML = cardHtml(q);
+  markHidden(holder);
   holder.firstElementChild.style.transform = `scale(${sc})`;
   // accordion summaries: what's set, at a glance
   const sm = (k, t) => { const el = $('sm-' + k); if (el) el.textContent = t || ''; };
@@ -1318,6 +1376,7 @@ document.addEventListener('click', e => {
   if (ds.purpose) { S.purpose = ds.purpose; return renderAll(); }
   if (ds.pblank != null) return doPrint('cards', 'blank');
   if (ds.pprint != null) return doPrint('cards', +ds.pprint);
+  if (ds.stand) { S.stand = ds.stand; return renderAll(); }
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
   if (ds.porient) { S.priceOrient = ds.porient; return renderAll(); }
   if (ds.playout) { S.priceLayout = ds.playout; return renderAll(); }
@@ -1581,7 +1640,7 @@ function exportObj(withImg, src) {
 }
 function exportObjInner(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'stand', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
@@ -1614,6 +1673,7 @@ function applyImport(d) {
   pick('mode', ['card', 'url'].includes(d.mode) ? d.mode : undefined);
   pick('purpose', ['shop', 'biz', 'price'].includes(d.purpose) ? d.purpose : undefined);
   pick('priceSize', PSIZES.some(p => p.id === d.priceSize) ? d.priceSize : undefined);
+  pick('stand', STANDS.some(x => x.id === d.stand) ? d.stand : undefined);
   pick('priceOrient', ['land', 'port'].includes(d.priceOrient) ? d.priceOrient : undefined);
   pick('priceLayout', ['center', 'left'].includes(d.priceLayout) ? d.priceLayout : undefined);
   pick('priceUnit', ['yen', 'en'].includes(d.priceUnit) ? d.priceUnit : undefined);
