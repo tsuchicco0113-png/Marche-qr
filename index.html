@@ -248,6 +248,14 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .card.pc .pc-guide{width:100%;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*7mm);padding:calc(var(--u)*2mm) calc(var(--u)*3mm) 0}
 .card.pc .pc-guide i{display:block;width:100%;border-bottom:.25mm dotted currentColor;opacity:.45}
 .card.pc .pc-guide i.pr{width:70%;margin-top:calc(var(--u)*2mm)}
+.card.pc.free .pc-el{position:absolute;z-index:2;transform:translate(-50%,-50%);width:max-content;max-width:calc(100% - var(--u)*6mm);display:flex;flex-direction:column;align-items:center;text-align:center}
+.card.pc.free .pc-el .pc-name,.card.pc.free .pc-el .pc-note{-webkit-line-clamp:3}
+.card.pc.free .pc-el.g i{display:block;border-bottom:.25mm dotted currentColor;opacity:.45;width:calc(var(--u)*34mm)}
+.card.pc.free .pc-el.g.gp i{width:calc(var(--u)*24mm)}
+.card.pc.free.sold .pc-el.dim{opacity:.3}
+#priceList .card.pc.free .pc-el{cursor:move;touch-action:none}
+#priceList .card.pc.free .pc-el:hover{outline:.3mm dashed rgba(181,83,47,.7);outline-offset:.6mm}
+#priceList .card.pc.free .pc-el.drag{outline:.3mm solid #b5532f;outline-offset:.6mm}
 .card.pc .pc-sold{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) rotate(-10deg);padding:calc(var(--u)*1mm) calc(var(--u)*3mm);border:.5mm solid currentColor;font-size:calc(var(--u)*13pt);font-weight:700;letter-spacing:.2em;white-space:nowrap}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
 .seg button{flex:1;min-width:30%;padding:8px 6px;border:1px solid var(--field);border-radius:8px;background:#fff;font-size:12px;cursor:pointer}
@@ -388,17 +396,22 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       </div>
       <p class="hint" id="priceSizeHint"></p>
       <span class="sub-h">文字の並び</span>
-      <div class="seg" style="grid-template-columns:1fr 1fr"><button data-playout="center">中央そろえ</button><button data-playout="left">左そろえ</button></div>
+      <div class="seg" style="grid-template-columns:repeat(3,1fr)"><button data-playout="center">中央そろえ</button><button data-playout="left">左そろえ</button><button data-playout="free">自由に配置</button></div>
+      <div id="priceFreeRow" style="display:flex;flex-direction:column;gap:6px">
+        <p class="hint" style="margin:0">右のカードの商品名・価格・補足・店名・QRを、それぞれドラッグして好きな場所へ動かせます。文字の上でマウスのホイールを回すと、その文字だけ大きさが変わります。位置はカードの大きさに対する割合なので、サイズを変えても同じ並びのまま広がります。</p>
+        <button class="btn" id="pricePosReset">いまの「中央そろえ」の配置からやり直す</button>
+      </div>
       <span class="sub-h">価格の表記</span>
       <div class="seg" style="grid-template-columns:1fr 1fr"><button data-punit="yen">¥1,200</button><button data-punit="en">1,200円</button></div>
       <div class="seg" style="grid-template-columns:repeat(3,1fr)"><button data-ptax="in">税込</button><button data-ptax="ex">税抜</button><button data-ptax="none">表記なし</button></div>
       <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff">
         <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;font-weight:700">文字の大きさ</span><button class="txtbtn" id="priceFsReset" style="padding:0;font-size:11px">リセット</button></div>
-        <div class="rng"><span style="width:52px">商品名</span><input type="range" id="fsName" min="50" max="180" step="5"><output id="fsNameO"></output></div>
-        <div class="rng"><span style="width:52px">価格</span><input type="range" id="fsPrice" min="50" max="180" step="5"><output id="fsPriceO"></output></div>
-        <div class="rng"><span style="width:52px">補足</span><input type="range" id="fsNote" min="50" max="220" step="5"><output id="fsNoteO"></output></div>
-        <div class="rng"><span style="width:52px">店名</span><input type="range" id="fsShop" min="50" max="220" step="5"><output id="fsShopO"></output></div>
-        <p class="hint">100%が標準です。大きくしすぎると、はみ出した部分は切れます。</p>
+        <div class="rng"><span style="width:52px">商品名</span><input type="range" id="fsName" min="40" max="400" step="5"><output id="fsNameO"></output></div>
+        <div class="rng"><span style="width:52px">価格</span><input type="range" id="fsPrice" min="40" max="400" step="5"><output id="fsPriceO"></output></div>
+        <div class="rng"><span style="width:52px">補足</span><input type="range" id="fsNote" min="40" max="400" step="5"><output id="fsNoteO"></output></div>
+        <div class="rng"><span style="width:52px">店名</span><input type="range" id="fsShop" min="40" max="400" step="5"><output id="fsShopO"></output></div>
+        <div class="rng" id="fsQrRow"><span style="width:52px">QR</span><input type="range" id="fsQr" min="50" max="300" step="5"><output id="fsQrO"></output></div>
+        <p class="hint">100%が標準です。大きくしすぎると、はみ出した部分は切れます。空白が目立つときは「自由に配置」にすると、置き場所も決められます。</p>
       </div>
       <label class="chk"><input type="checkbox" id="priceFrame"><span style="flex:1">細い枠線を入れる</span></label>
       <label class="chk"><input type="checkbox" id="priceGuide"><span style="flex:1">手書き用カードに目安線を入れる</span><small>空白カード用</small></label>
@@ -809,7 +822,7 @@ const DEF = {
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
-  priceFs: { name: 100, price: 100, note: 100, shop: 100 },
+  priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
   stand: 'none',
   open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
@@ -928,10 +941,31 @@ function priceCardHtml(it, q, pw, ph, extra) {
   const noteHtml = clean(it.note) ? `<div class="pc-note">${esc(clean(it.note))}</div>` : '';
   const logo = S.priceShop && S.logoCard ? effLogo() : '';
   const who = S.priceShop && (logo || clean(S.brand)) ? `<div class="pc-who">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : ''}<span>${esc(clean(S.brand))}</span></div>` : '';
-  const qrBox = S.priceQr && q ? `<div class="pc-qr">${qrSvg(q, col, 0, '', qrBg).replace('<svg ', '<svg style="width:calc(var(--u)*13mm);height:calc(var(--u)*13mm);flex:none" ')}${clean(S.qrLabel) ? `<div class="qrl">${esc(clean(S.qrLabel))}</div>` : ''}</div>` : '';
+  const qrBox = S.priceQr && q ? `<div class="pc-qr">${qrSvg(q, col, 0, '', qrBg).replace('<svg ', '<svg style="width:calc(var(--u)*var(--fq,1)*13mm);height:calc(var(--u)*var(--fq,1)*13mm);flex:none" ')}${clean(S.qrLabel) ? `<div class="qrl">${esc(clean(S.qrLabel))}</div>` : ''}</div>` : '';
   const foot = who || qrBox ? `<div class="pc-foot${qrBox ? '' : ' noqr'}">${who}${qrBox}</div>` : '';
-  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${it.sold ? ' sold' : ''}" style="--hide:${standHide()}mm;--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
-    ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}${guideHtml}</div>${foot}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
+  const free = S.priceLayout === 'free', P = pricePos();
+  const el = (k, html, cls) => html ? `<div class="pc-el${cls ? ' ' + cls : ''}" data-el="${k}" style="left:${P[k][0]}%;top:${P[k][1]}%">${html}</div>` : '';
+  const inner = free
+    ? (it.blank && S.priceGuide ? el('name', '<i></i>', 'g') + el('price', '<i></i>', 'g gp') : el('name', nameHtml, 'dim') + el('price', priceHtml, 'dim')) + el('note', noteHtml, 'dim') + el('shop', who) + el('qr', qrBox)
+    : `<div class="pc-body">${nameHtml}${priceHtml}${noteHtml}${guideHtml}</div>${foot}`;
+  return `<div class="card pc${S.priceLayout === 'left' ? ' left' : ''}${free ? ' free' : ''}${it.sold ? ' sold' : ''}" style="--hide:${standHide()}mm;--u:${u.toFixed(3)};--fn:${S.priceFs.name / 100};--fp:${S.priceFs.price / 100};--fno:${S.priceFs.note / 100};--fs:${S.priceFs.shop / 100};--fq:${(S.priceFs.qr || 100) / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
+    ${S.priceFrame ? '<div class="pc-frame"></div>' : ''}${inner}${it.sold ? `<div class="pc-sold" style="background:${rgba(base, 0.88)}">SOLD OUT</div>` : ''}</div>`;
+}
+/* 自由に配置：各要素の中心の位置（カードの横・縦に対する％） */
+const PRICE_POS_KEYS = ['name', 'price', 'note', 'shop', 'qr'];
+const PRICE_POS_DEF = { name: [50, 30], price: [50, 50], note: [50, 66], shop: [50, 86], qr: [82, 78] };
+function pricePos() { const P = S.pricePos && typeof S.pricePos === 'object' ? S.pricePos : {}; return Object.fromEntries(PRICE_POS_KEYS.map(k => [k, Array.isArray(P[k]) && P[k].length === 2 && P[k].every(Number.isFinite) ? P[k] : PRICE_POS_DEF[k]])); }
+/* いまの「中央そろえ」の並びを測って、自由配置の初めの位置にする（見えない所で描いて測る） */
+function pricePosFromAuto() {
+  const [pw, ph] = priceDims(), list = priceItemsClean(), keep = S.priceLayout, out = { ...PRICE_POS_DEF }, sel = { name: '.pc-name', price: '.pc-price', note: '.pc-note', shop: '.pc-who', qr: '.pc-qr' };
+  S.priceLayout = 'center';
+  const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden';
+  box.innerHTML = (list.length ? list : [{ name: '商品名', price: '1000', note: '補足' }]).slice(0, 12).map(it => priceCardHtml(it, CUR.qr, pw, ph)).join('');
+  document.body.appendChild(box);
+  const got = {};
+  box.querySelectorAll('.card.pc').forEach(c => { const r = c.getBoundingClientRect(); PRICE_POS_KEYS.forEach(k => { const e = c.querySelector(sel[k]); if (!e || got[k]) return; const b = e.getBoundingClientRect(); got[k] = [Math.round((b.left + b.width / 2 - r.left) / r.width * 1000) / 10, Math.round((b.top + b.height / 2 - r.top) / r.height * 1000) / 10]; }); });
+  box.remove(); S.priceLayout = keep;
+  return { ...out, ...got };
 }
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
 function sheetGeom() {
@@ -1144,8 +1178,9 @@ function renderPriceControls() {
   document.querySelectorAll('[data-punit]').forEach(b => b.classList.toggle('on', b.dataset.punit === S.priceUnit));
   document.querySelectorAll('[data-ptax]').forEach(b => b.classList.toggle('on', b.dataset.ptax === S.priceTax));
   $('priceFrame').checked = !!S.priceFrame; $('priceGuide').checked = !!S.priceGuide; $('priceShop').checked = !!S.priceShop; $('priceQr').checked = !!S.priceQr;
-  $('priceQrHint').hidden = !S.priceQr;
-  [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => { $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%'; });
+  $('priceQrHint').hidden = !S.priceQr; $('fsQrRow').hidden = !S.priceQr;
+  $('priceFreeRow').hidden = S.priceLayout !== 'free';
+  [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop'], ['fsQr', 'qr']].forEach(([id, k]) => { $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%'; });
   const [pw, ph] = priceDims(), per = (a, b) => S.priceSize === 'meishi' ? 10 : Math.floor(198 / a) * Math.floor(285 / b), now = per(pw, ph), alt = per(ph, pw);
   const SIZE_STAND = { meishi: '名刺スタンド', half: '値札スタンド（名刺半分）', a8: '値札スタンド（横向き＝A8横／縦向き＝A8縦）', a7: 'QR決済スタンド（縦向き＝A7縦）', sq80: 'QR決済スタンド（正方形80）', hagaki: 'QR決済スタンド（縦向き＝はがき縦）・名刺スタンドの幅155（横向き）' };
   $('priceSizeHint').textContent = `A4 1ページに ${now} 枚。` + (!cu && alt > now ? `向きを変えると ${alt} 枚になります。` : '') + (S.priceSize === 'meishi' ? '（名刺サイズのミシン目入り用紙 品番51072に合わせた割り付けです）' : '') + (SIZE_STAND[S.priceSize] ? `合うスタンド：${SIZE_STAND[S.priceSize]}。` : '');
@@ -1379,7 +1414,7 @@ document.addEventListener('click', e => {
   if (ds.stand) { S.stand = ds.stand; return renderAll(); }
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
   if (ds.porient) { S.priceOrient = ds.porient; return renderAll(); }
-  if (ds.playout) { S.priceLayout = ds.playout; return renderAll(); }
+  if (ds.playout) { if (ds.playout === 'free' && !S.pricePos) S.pricePos = pricePosFromAuto(); S.priceLayout = ds.playout; return renderAll(); }
   if (ds.punit) { S.priceUnit = ds.punit; return renderAll(); }
   if (ds.ptax) { S.priceTax = ds.ptax; return renderAll(); }
   if (ds.pdel) { S.priceItems.splice(+ds.pdel, 1); return renderAll(); }
@@ -1414,8 +1449,35 @@ $('priceBulkAdd').onclick = () => {
   $('priceBulk').value = ''; renderAll();
   toast(rows.length > room ? `${room}件を追加しました（上限${MAX_PRICE}件）` : `${rows.length}件を追加しました`);
 };
-[['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
-$('priceFsReset').onclick = () => { S.priceFs = { name: 100, price: 100, note: 100, shop: 100 }; renderAll(); };
+[['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop'], ['fsQr', 'qr']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
+$('pricePosReset').onclick = () => { S.pricePos = pricePosFromAuto(); renderAll(); };
+$('priceList').addEventListener('pointerdown', e => {
+  const t = e.target.closest('.card.pc.free .pc-el'); if (!t) return;
+  e.preventDefault();
+  const card = t.closest('.card'), k = t.dataset.el, r = card.getBoundingClientRect(), b = t.getBoundingClientRect();
+  const ox = e.clientX - (b.left + b.width / 2), oy = e.clientY - (b.top + b.height / 2);
+  const same = () => $('priceList').querySelectorAll(`.pc-el[data-el="${k}"]`);
+  same().forEach(x => x.classList.add('drag'));
+  const cl = v => Math.max(0, Math.min(100, Math.round(v * 10) / 10));
+  const mv = ev => {
+    const x = cl((ev.clientX - ox - r.left) / r.width * 100), y = cl((ev.clientY - oy - r.top) / r.height * 100);
+    S.pricePos = { ...pricePos(), [k]: [x, y] };
+    same().forEach(el => { el.style.left = x + '%'; el.style.top = y + '%'; });   // ほかの商品のカードも一緒に動く
+  };
+  const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); same().forEach(x => x.classList.remove('drag')); save(); };
+  window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+});
+$('priceList').addEventListener('wheel', e => {
+  const t = e.target.closest('.card.pc.free .pc-el'); if (!t) return;
+  e.preventDefault();
+  const k = t.dataset.el, lim = k === 'qr' ? [50, 300] : [40, 400];
+  S.priceFs[k] = Math.max(lim[0], Math.min(lim[1], (S.priceFs[k] || 100) + (e.deltaY < 0 ? 5 : -5)));
+  const v = { name: '--fn', price: '--fp', note: '--fno', shop: '--fs', qr: '--fq' }[k];
+  $('priceList').querySelectorAll('.card.pc').forEach(c => c.style.setProperty(v, S.priceFs[k] / 100));
+  const id = { name: 'fsName', price: 'fsPrice', note: 'fsNote', shop: 'fsShop', qr: 'fsQr' }[k]; $(id).value = S.priceFs[k]; $(id + 'O').textContent = S.priceFs[k] + '%';
+  save();
+}, { passive: false });
+$('priceFsReset').onclick = () => { S.priceFs = { name: 100, price: 100, note: 100, shop: 100, qr: 100 }; renderAll(); };
 $('priceEach').onchange = e => { S.priceEach = e.target.checked; renderAll(); };
 ['priceFrame', 'priceGuide', 'priceShop', 'priceQr'].forEach(k => $(k).onchange = e => { S[k] = e.target.checked; renderAll(); });
 ['priceW', 'priceH'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value === '' ? '' : Number(e.target.value); renderPreview(); }));
@@ -1644,6 +1706,7 @@ function exportObjInner(withImg) {
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
+  if (S.pricePos) o.data.pricePos = pricePos();
   o.data.priceItems = S.priceItems.map(it => ({ name: it.name || '', price: it.price || '', note: it.note || '', copies: priceCopies(it), sold: !!it.sold }));
   if (withImg) { o.data.logo = S.logo || null; o.data.photo = S.photo || null; }
   return o;
@@ -1675,12 +1738,13 @@ function applyImport(d) {
   pick('priceSize', PSIZES.some(p => p.id === d.priceSize) ? d.priceSize : undefined);
   pick('stand', STANDS.some(x => x.id === d.stand) ? d.stand : undefined);
   pick('priceOrient', ['land', 'port'].includes(d.priceOrient) ? d.priceOrient : undefined);
-  pick('priceLayout', ['center', 'left'].includes(d.priceLayout) ? d.priceLayout : undefined);
+  pick('priceLayout', ['center', 'left', 'free'].includes(d.priceLayout) ? d.priceLayout : undefined);
+  if (d.pricePos && typeof d.pricePos === 'object') n.pricePos = Object.fromEntries(PRICE_POS_KEYS.filter(k => Array.isArray(d.pricePos[k]) && d.pricePos[k].length === 2 && d.pricePos[k].every(Number.isFinite)).map(k => [k, d.pricePos[k].map(v => Math.max(0, Math.min(100, v)))]));
   pick('priceUnit', ['yen', 'en'].includes(d.priceUnit) ? d.priceUnit : undefined);
   pick('priceTax', ['in', 'ex', 'none'].includes(d.priceTax) ? d.priceTax : undefined);
   ['priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach'].forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
   ['priceW', 'priceH'].forEach(k => pick(k, Number.isFinite(d[k]) ? Math.max(25, Math.min(k === 'priceW' ? 190 : 280, d[k])) : undefined));
-  if (d.priceFs && typeof d.priceFs === 'object') n.priceFs = Object.fromEntries(['name', 'price', 'note', 'shop'].map(k => [k, Number.isFinite(d.priceFs[k]) ? Math.max(50, Math.min(220, Math.round(d.priceFs[k]))) : S.priceFs[k]]));
+  if (d.priceFs && typeof d.priceFs === 'object') n.priceFs = Object.fromEntries(['name', 'price', 'note', 'shop', 'qr'].map(k => [k, Number.isFinite(d.priceFs[k]) ? Math.max(40, Math.min(400, Math.round(d.priceFs[k]))) : (S.priceFs[k] || 100)]));
   if (Array.isArray(d.priceItems)) n.priceItems = d.priceItems.filter(it => it && typeof it === 'object').slice(0, MAX_PRICE).map(it => ({ name: str(it.name, 100) || '', price: str(it.price, 30) || '', note: str(it.note, 160) || '', copies: Number.isFinite(it.copies) && it.copies >= 1 ? Math.min(100, Math.round(it.copies)) : 0, sold: it.sold === true }));
   pick('layout', LAYOUTS.some(l => l.id === d.layout) ? d.layout : undefined);
   pick('logoSrc', ['file', 'url'].includes(d.logoSrc) ? d.logoSrc : undefined);
