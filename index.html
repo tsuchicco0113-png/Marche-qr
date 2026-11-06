@@ -279,6 +279,10 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 .card.qc .qc-who img{height:calc(var(--u)*var(--fb)*6mm);max-width:calc(var(--u)*var(--fb)*18mm);object-fit:contain}
 .card.qc .qc-sub{font-size:calc(var(--u)*var(--fsub)*6.6pt);letter-spacing:.06em;opacity:.8;line-height:1.4;max-width:calc(100% - var(--u)*8mm);white-space:pre-line}
 .card.qc .qc-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.6mm);width:100%}
+.card.qc .qc-nfc{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*1.4mm);padding:calc(var(--u)*.8mm) calc(var(--u)*2.6mm);border:.3mm solid currentColor;border-radius:999px;font-size:calc(var(--u)*var(--fsub)*6.4pt);font-weight:700;letter-spacing:.06em;line-height:1.2}
+.card.qc .qc-nfc svg{width:calc(var(--u)*var(--fsub)*4.2mm);height:calc(var(--u)*var(--fsub)*4.2mm);flex:none}
+.coinzone{position:absolute;left:50%;z-index:6;transform:translate(-50%,50%);border:.35mm dashed #2f6fb0;border-radius:50%;background:rgba(47,111,176,.08);pointer-events:none;display:flex;align-items:flex-start;justify-content:center}
+.coinzone span{transform:translateY(-130%);font:600 4.6pt 'Zen Kaku Gothic New',sans-serif;color:#2f6fb0;white-space:nowrap;background:rgba(255,255,255,.85);padding:0 .8mm;border-radius:.6mm}
 .qc-hold{display:flex;justify-content:center;padding:6px 0 4px}
 .hidezone{position:absolute;left:0;right:0;bottom:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(181,83,47,.20) 0 1.2mm,rgba(181,83,47,.06) 1.2mm 2.4mm);border-top:.3mm dashed #b5532f;display:flex;align-items:center;justify-content:center;font:600 5pt 'Zen Kaku Gothic New',sans-serif;color:#8e3f22;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
 @media print{
@@ -418,6 +422,11 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
       <label class="f">QRの下のひとこと<input class="in" id="qcSub" placeholder="スマホで読み取ってください"></label>
       <label class="f">補足（使えるお支払い・アカウント名など／空欄でなし）<textarea class="in" id="qcNote" rows="2" placeholder="PayPay・d払い・楽天ペイ"></textarea></label>
       <label class="chk"><input type="checkbox" id="qcBrand"><span style="flex:1">店名・ロゴを入れる</span></label>
+      <label class="chk"><input type="checkbox" id="qcNfc"><span style="flex:1">NFCタグコインを裏に入れる（「スマホをかざしてもOK」の印）</span><small>スタンドのNFC：QRカードの裏</small></label>
+      <div id="qcNfcRow" style="display:flex;flex-direction:column;gap:6px">
+        <input class="in" id="qcNfcText" placeholder="スマホをかざしてもOK">
+        <p class="hint" style="margin:0" id="qcNfcHint"></p>
+      </div>
       <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff">
         <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;font-weight:700">大きさ</span><button class="txtbtn" id="qcFsReset" style="padding:0;font-size:11px">リセット</button></div>
         <div class="rng"><span style="width:52px">見出し</span><input type="range" id="qcFsTitle" min="50" max="250" step="5"><output id="qcFsTitleO"></output></div>
@@ -873,7 +882,7 @@ const DEF = {
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
   priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
   stand: 'none',
-  qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
+  qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcNfc: false, qcNfcText: 'スマホをかざしてもOK', qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
   open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
@@ -1041,16 +1050,21 @@ function qcCardHtml(q, extra) {
   const hide = standHide(), padB = Math.max(u * 4, hide + 1.5), gap = u * 2;
   const topH = band === 'band' ? pt(13 * u * F.title / 100) * 1.25 * (title.length * pt(13 * u * F.title / 100) > pw - 6 * u ? 2 : 1) + u * 6 : band === 'line' ? u * 5 + pt(12 * u * F.title / 100) * 1.25 + u * 1.4 : u * 3;
   const whoH = brand || logo ? Math.max(pt(10 * u * F.brand / 100) * 1.2, logo ? 6 * u * F.brand / 100 : 0) + gap : 0;
+  const nfcOn = !!S.qcNfc, nfcTxt = clean(S.qcNfcText) || 'スマホをかざしてもOK', nfcH = nfcOn ? Math.max(pt(6.4 * u * F.sub / 100) * 1.2, 4.2 * u * F.sub / 100) + u * 1.6 + 0.6 + gap : 0;
   const subH = sub ? pt(6.6 * u * F.sub / 100) * 1.4 + gap : 0, noteH = note ? pt(6.6 * u * F.sub / 100) * 1.4 * Math.min(3, note.split('\n').length) + gap : 0;
-  const avail = ph - topH - gap * 2 - whoH - subH - noteH - padB;
+  const avail = ph - topH - gap * 2 - whoH - subH - noteH - nfcH - padB;
   const qmax = Math.max(14, Math.min(pw - u * 10, avail)), qmm = Math.round(qmax * F.qr / 10) / 10;
   const qr = S.qcSrc === 'img' ? (S.qcImg ? `<img src="${S.qcImg}" alt="">` : '<span style="font-size:8pt;opacity:.5">QRの画像を選んでください</span>')
     : q ? qrSvg(q, col, 0, CUR.noCenter || !S.logoQr ? '' : effLogo(), '#ffffff') : '<span style="font-size:8pt;opacity:.5">QRを作れません</span>';
   const head = band === 'band' ? `<div class="qc-band" style="background:${bc};color:#fff">${esc(title)}</div>` : band === 'line' ? `<div class="qc-line" style="border-color:${bc}">${esc(title)}</div>` : '<div class="qc-top"></div>';
   const who = brand || logo ? `<div class="qc-who">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : ''}${brand ? `<span>${esc(brand)}</span>` : ''}</div>` : '';
   return `<div class="card qc" style="--hide:${hide}mm;--u:${u.toFixed(3)};--ft:${F.title / 100};--fb:${F.brand / 100};--fsub:${F.sub / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
-    ${head}<div class="qc-body"><div class="qc-qr" style="width:${qmm}mm;height:${qmm}mm">${qr}</div>${who}${sub ? `<div class="qc-sub">${esc(sub)}</div>` : ''}${note ? `<div class="qc-sub">${esc(note)}</div>` : ''}</div></div>`;
+    ${head}<div class="qc-body"><div class="qc-qr" style="width:${qmm}mm;height:${qmm}mm">${qr}</div>${nfcOn ? `<div class="qc-nfc">${NFC_ICON}<span>${esc(nfcTxt)}</span></div>` : ''}${who}${sub ? `<div class="qc-sub">${esc(sub)}</div>` : ''}${note ? `<div class="qc-sub">${esc(note)}</div>` : ''}</div></div>`;
 }
+/* NFCの印（スマホと電波の形） */
+const NFC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="9" height="16" rx="2"/><path d="M6.5 17h2"/><path d="M15 9.5a3.5 3.5 0 0 1 0 5"/><path d="M17.5 7a7 7 0 0 1 0 10"/><path d="M20 4.5a10.5 10.5 0 0 1 0 15"/></svg>';
+/* QR決済＋名刺スタンドの NFC（back）：コインの中心は、カードの下の端から (溝の深さ8 ＋ 背板の高さ＝縦×0.75) ÷ 2。直径30 */
+const qcCoinFromBottom = () => (8 + qcDims()[1] * 0.75) / 2;
 const qcPer = () => { const g = sheetGeom(); return g.cols * g.rows; };
 const qcCount = () => { const n = Math.round(+S.qcCopies); return n >= 1 ? Math.min(200, n) : qcPer(); };
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
@@ -1303,9 +1317,10 @@ function renderQcControls() {
   $('qcPresets').innerHTML = QC_PRESETS.map(t => `<button class="chip" data-qcpre="${esc(t)}" style="padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:11px;cursor:pointer">${esc(t)}</button>`).join('');
   $('qcColorsH').hidden = $('qcColors').hidden = S.qcBand === 'none';
   $('qcColors').innerHTML = QC_COLORS.map((k, i) => `<button data-qccolor="${i}" title="${k.label}" class="${S.qcColor === i ? 'on' : ''}" style="display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid ${S.qcColor === i ? 'var(--ink,#2b2724)' : 'var(--line)'};border-radius:7px;background:#fff;font-size:11px;cursor:pointer"><i style="width:14px;height:14px;border-radius:50%;background:${k.c || ink()}"></i>${k.label}</button>`).join('');
-  $('qcBrand').checked = !!S.qcBrand;
+  $('qcBrand').checked = !!S.qcBrand; $('qcNfc').checked = !!S.qcNfc; $('qcNfcRow').hidden = !S.qcNfc;
+  $('qcNfcHint').textContent = `スタンドの「NFCタグコイン」を「QRカードの裏」にしたときの印です。コインは左右の真ん中、カードの下の端から約${Math.round(qcCoinFromBottom())}mmの所（QRのほぼ真後ろ）に隠れます。プレビューの青い点線がその位置です（印刷はされません）。コインに書き込むURLは、下の「容量（NFCタグ・QR）」で確かめて、「URLコピー」で NFC Tools などに貼り付けます。`;
   [['qcFsTitle', 'title'], ['qcFsBrand', 'brand'], ['qcFsSub', 'sub'], ['qcFsQr', 'qr']].forEach(([id, k]) => { $(id).value = S.qcFs[k]; $(id + 'O').textContent = S.qcFs[k] + '%'; });
-  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies'].forEach(k => { if (document.activeElement !== $(k)) $(k).value = S[k] ?? ''; });
+  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies', 'qcNfcText'].forEach(k => { if (document.activeElement !== $(k)) $(k).value = S[k] ?? ''; });
 }
 function renderControls() {
   const qc = isQc(), qcShop = qc && S.qcSrc === 'shop';
@@ -1314,7 +1329,7 @@ function renderControls() {
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
   const noQr = (price && !S.priceQr) || (qc && S.qcSrc === 'img');
   $('shopTpl').hidden = biz || price || (qc && !qcShop); $('bizHint').hidden = !biz; $('priceHint').hidden = !price; $('qcHint').hidden = !qc;
-  $('secPrice').hidden = !price; $('secPriceDesign').hidden = !price; $('secLayout').hidden = price || qc; $('secCap').hidden = price || qc; $('secQc').hidden = !qc;
+  $('secPrice').hidden = !price; $('secPriceDesign').hidden = !price; $('secLayout').hidden = price || qc; $('secCap').hidden = price || (qc && !S.qcNfc); $('secQc').hidden = !qc;
   $('cardPanel').hidden = price || qc; $('pricePanel').hidden = !price; $('qcPanel').hidden = !qc; $('qrPanel').hidden = noQr;
   $('rowSns').hidden = price || qc; $('brandLabel').textContent = price ? '店名（カードに小さく入ります）' : qc ? '店名（QRの下に入ります）' : '屋号';
   $('open').hidden = price || (qc && !shopCard && S.qcSrc !== 'vcard'); $('copy').hidden = price || noQr; $('dlGrid').hidden = noQr;
@@ -1435,13 +1450,14 @@ async function renderPreview() {
   }
 
   // meters
-  const nb = target ? (isBiz() ? ndefVcardBytes(target) : ndefBytes(target)) : 0;
+  const vcTarget = isBiz() || (isQc() && S.qcSrc === 'vcard');
+  const nb = target ? (vcTarget ? ndefVcardBytes(target) : ndefBytes(target)) : 0;
   $('urlLen').textContent = target ? enc.encode(target).length + ' byte（NFC ' + nb + ' byte）' : '—';
-  document.querySelector('#secCapTitle') && ($('secCapTitle').textContent = isBiz() ? '書き込む連絡先データ' : '書き込むURL');
+  document.querySelector('#secCapTitle') && ($('secCapTitle').textContent = vcTarget ? '書き込む連絡先データ' : '書き込むURL');
   $('urlOut').textContent = target || '（URLが空です）';
   $('tags').innerHTML = TAGS.map(t => { const ok = nb && nb <= t.cap; return `<div class="tag ${nb ? (ok ? 'ok' : 'ng') : ''}"><b>${t.name}</b><div class="bar"><i style="width:${Math.min(100, nb / t.cap * 100).toFixed(1)}%"></i></div><small>${nb} / ${t.cap} ${ok ? 'OK' : nb ? '入らない' : ''}</small></div>`; }).join('');
   const fit = TAGS.find(t => nb && nb <= t.cap);
-  $('nfcHint').innerHTML = isBiz() ? (!nb ? '姓・名か屋号を入れてください。' : (fit ? `NFCなら <b>${fit.name}</b> 以上に入ります（NFC Toolsの「連絡先」レコード）。` : 'NFCタグには入りません。') + 'ただし連絡先のNFCはiPhoneで開けない機種があるため、ビジネスモードは<b>QRコードが確実</b>です。') : !nb ? '' : fit ? `<b>${fit.name}</b> 以上のタグに書き込めます。${fit.name === 'NTAG213' ? '一番安いタグでOKです。' : S.mode === 'card' ? 'NTAG213に収めたい場合は、一言・リンク名・ロゴURLを短くするか、公開URLを短いドメインにしてください。' : ''}` : 'どのタグにも入りません。文字を減らしてください。';
+  $('nfcHint').innerHTML = isQc() && S.qcSrc === 'img' ? 'QRの画像からはNFCに書き込む内容を作れません。決済サービスの店舗QRのURLが分かれば、「URLを入れる」にすると、同じURLをNFCコインにも書き込めます。' : vcTarget ? (!nb ? '姓・名か屋号を入れてください。' : (fit ? `NFCなら <b>${fit.name}</b> 以上に入ります（NFC Toolsの「連絡先」レコード）。` : 'NFCタグには入りません。') + 'ただし連絡先のNFCはiPhoneで開けない機種があるため、ビジネスモードは<b>QRコードが確実</b>です。') : !nb ? '' : fit ? `<b>${fit.name}</b> 以上のタグに書き込めます。${fit.name === 'NTAG213' ? '一番安いタグでOKです。' : S.mode === 'card' ? 'NTAG213に収めたい場合は、一言・リンク名・ロゴURLを短くするか、公開URLを短いドメインにしてください。' : ''}` : 'どのタグにも入りません。文字を減らしてください。';
 
   // QR panel
   const qrmm = isQc() ? (() => { const m = /qc-qr" style="width:([\d.]+)mm/.exec(qcCardHtml(q) || ''); return m ? +m[1] : 40; })() : isPrice() ? 13 * priceU(...priceDims()) : isBiz() ? ({ std: 26, tall: 28 }[effLayout()] || 26) : ({ std: 26, tall: 30, photo: 24, photobg: 24 }[effLayout()] || 26);
@@ -1474,6 +1490,7 @@ async function renderPreview() {
     hq.style.width = Math.round(qw * 3.7795 * sc) + 'px'; hq.style.height = Math.round(qh * 3.7795 * sc) + 'px';
     hq.innerHTML = qcCardHtml(q, `transform:scale(${sc});transform-origin:0 0`);
     markHidden(hq);
+    if (S.qcNfc) { const c = hq.querySelector('.card'), z = document.createElement('div'); z.className = 'coinzone'; Object.assign(z.style, { width: '30mm', height: '30mm', bottom: qcCoinFromBottom() + 'mm' }); z.innerHTML = '<span>裏のNFCコイン（φ30）</span>'; c.appendChild(z); }
     $('qcInfo').textContent = `${qw} × ${qh} mm・${qcCount()}枚`;
     const sm2 = $('sm-qc'); if (sm2) sm2.textContent = (QC_SIZES.find(z => z.id === S.qcSize) || {}).label || '';
   }
@@ -1575,7 +1592,8 @@ $('priceBulkAdd').onclick = () => {
   toast(rows.length > room ? `${room}件を追加しました（上限${MAX_PRICE}件）` : `${rows.length}件を追加しました`);
 };
 [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop'], ['fsQr', 'qr']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
-['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value; renderPreview(); }));
+$('qcNfc').addEventListener('change', e => { S.qcNfc = e.target.checked; renderAll(); });
+['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies', 'qcNfcText'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value; renderPreview(); }));
 $('qcBrand').addEventListener('change', e => { S.qcBrand = e.target.checked; renderPreview(); });
 [['qcFsTitle', 'title'], ['qcFsBrand', 'brand'], ['qcFsSub', 'sub'], ['qcFsQr', 'qr']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.qcFs[k] = +e.target.value; $(id + 'O').textContent = S.qcFs[k] + '%'; renderPreview(); }));
 $('qcFsReset').onclick = () => { S.qcFs = { title: 100, brand: 100, sub: 100, qr: 100 }; renderAll(); };
@@ -1856,7 +1874,7 @@ function exportObjInner(withImg) {
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
-  ['qcSize', 'qcSrc', 'qcUrl', 'qcBand', 'qcTitle', 'qcColor', 'qcSub', 'qcNote', 'qcBrand', 'qcCopies'].forEach(k => { o.data[k] = S[k]; }); o.data.qcFs = { ...S.qcFs };
+  ['qcSize', 'qcSrc', 'qcUrl', 'qcBand', 'qcTitle', 'qcColor', 'qcSub', 'qcNote', 'qcBrand', 'qcNfc', 'qcNfcText', 'qcCopies'].forEach(k => { o.data[k] = S[k]; }); o.data.qcFs = { ...S.qcFs };
   if (withImg) o.data.qcImg = S.qcImg || null;
   if (S.pricePos) o.data.pricePos = pricePos();
   o.data.priceItems = S.priceItems.map(it => ({ name: it.name || '', price: it.price || '', note: it.note || '', copies: priceCopies(it), sold: !!it.sold }));
@@ -1891,7 +1909,8 @@ function applyImport(d) {
   pick('qcSrc', QC_SRCS.some(z => z.id === d.qcSrc) ? d.qcSrc : undefined);
   pick('qcBand', QC_BANDS.some(z => z.id === d.qcBand) ? d.qcBand : undefined);
   pick('qcColor', Number.isInteger(d.qcColor) && QC_COLORS[d.qcColor] ? d.qcColor : undefined);
-  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote'].forEach(k => pick(k, typeof d[k] === 'string' ? d[k].slice(0, 400) : undefined));
+  pick('qcNfc', typeof d.qcNfc === 'boolean' ? d.qcNfc : undefined);
+  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcNfcText'].forEach(k => pick(k, typeof d[k] === 'string' ? d[k].slice(0, 400) : undefined));
   pick('qcCopies', typeof d.qcCopies === 'string' || Number.isFinite(d.qcCopies) ? String(d.qcCopies).slice(0, 4) : undefined);
   pick('qcBrand', typeof d.qcBrand === 'boolean' ? d.qcBrand : undefined);
   if (d.qcFs && typeof d.qcFs === 'object') n.qcFs = Object.fromEntries(['title', 'brand', 'sub', 'qr'].map(k => [k, Number.isFinite(d.qcFs[k]) ? Math.max(50, Math.min(k === 'qr' ? 100 : 250, Math.round(d.qcFs[k]))) : 100]));
