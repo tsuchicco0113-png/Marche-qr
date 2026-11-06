@@ -60,6 +60,14 @@ textarea.in{line-height:1.6;resize:vertical}
 .inks{display:flex;flex-wrap:wrap;gap:8px}
 .inks button{display:flex;align-items:center;gap:6px;padding:5px 9px 5px 5px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:11px;cursor:pointer}
 .inks button.on{border-color:var(--ink)}
+.recs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.recs button{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:11px;cursor:pointer;text-align:left;line-height:1.35}
+.recs button.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.recs .mock{position:relative;flex:none;width:46px;height:40px;border-radius:5px;overflow:hidden}
+.recs .mock .cd{position:absolute;left:8px;right:8px;top:4px;bottom:9px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;font:700 11px 'Zen Kaku Gothic New',sans-serif}
+.recs .mock .st{position:absolute;left:0;right:0;bottom:0;height:13px}
+.recs b{display:block;font-size:11.5px}
+.recs small{color:#8a8178}
 .inks i{width:16px;height:16px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .papers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .papers button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 2px 6px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:10.5px;cursor:pointer}
@@ -333,6 +341,12 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 
     <details class="acc" id="secStand" data-sec="stand"><summary><h2>立てるスタンド（HEXA STAGE）</h2><span class="sm" id="sm-stand"></span></summary><div class="acc-body">
       <div class="seg" id="stands"></div>
+      <div id="standColorBox" hidden>
+        <span class="sub-h">スタンドの色</span>
+        <div class="inks" id="standColors"></div>
+        <span class="sub-h" id="standRecsH">この色に合うカード</span>
+        <div class="recs" id="standRecs"></div>
+      </div>
       <p class="hint" id="standHint"></p>
       <p class="warn" id="standWarn" hidden></p>
       <button class="btn" id="standFit" hidden>スタンドに合うサイズにする</button>
@@ -494,6 +508,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     </div></details>
 
     <details class="acc" data-sec="style"><summary><h2>世界観（紙・色・書体）</h2><span class="sm" id="sm-style"></span></summary><div class="acc-body">
+      <div id="styleRecBox" hidden><span class="sub-h" id="styleRecH">スタンドの色に合うカード</span><div class="recs" id="styleRecs"></div></div>
       <span class="sub-h" id="bgsH">紙の色</span>
       <div class="inks" id="bgs"></div>
       <span class="sub-h" id="texsH">紙の質感</span>
@@ -881,7 +896,7 @@ const DEF = {
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
   priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
-  stand: 'none',
+  stand: 'none', standColor: '',
   qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcNfc: false, qcNfcText: 'スマホをかざしてもOK', qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
   open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
@@ -1086,7 +1101,12 @@ const effLayout = () => isBiz() && /^photo/.test(S.layout) ? 'std' : S.layout;
 /* 見本だけ：スタンドの溝で隠れる下の端に斜線（印刷用の buildSheet には入れない） */
 function markHidden(box) {
   const hide = standHide(); if (!hide) return;
-  box.querySelectorAll('.card').forEach(c => { const z = document.createElement('div'); z.className = 'hidezone'; z.style.height = hide + 'mm'; z.textContent = 'スタンドで隠れる'; c.appendChild(z); });
+  const sc = standColorOf();
+  box.querySelectorAll('.card').forEach(c => {
+    const z = document.createElement('div'); z.className = 'hidezone'; z.style.height = hide + 'mm'; z.textContent = 'スタンドで隠れる';
+    if (sc) { z.style.background = standCss(sc); z.style.borderTop = 'none'; z.style.color = lumOf(sc.hex) > 0.3 ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.75)'; z.textContent = `スタンド（${sc.label}）`; }
+    c.appendChild(z);
+  });
 }
 /* vCard 3.0 (UTF-8) — read by iPhone camera and Android camera/Lens */
 const vEsc = v => String(v).replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1');
@@ -1291,6 +1311,75 @@ function renderPriceControls() {
   $('priceSizeHint').textContent = `A4 1ページに ${now} 枚。` + (!cu && alt > now ? `向きを変えると ${alt} 枚になります。` : '') + (S.priceSize === 'meishi' ? '（名刺サイズのミシン目入り用紙 品番51072に合わせた割り付けです）' : '') + (SIZE_STAND[S.priceSize] ? `合うスタンド：${SIZE_STAND[S.priceSize]}。` : '');
 }
 const LAYOUT_NAME = Object.fromEntries(LAYOUTS.map(l => [l.id, l.label]));
+/* =========================================================
+   スタンドの色（HEXA STAGE で売っている色）と、それに合うカードのおすすめ
+   ・id は HEXA STAGE Studio の filaments.json と同じ（注文のときに色がずれない）
+   ・売る色を変えたら、この一覧だけ直せばOK
+   ========================================================= */
+const STAND_COLORS = [
+  { id: 'pt-cotton-white',     label: 'コットンホワイト', hex: '#F4EFEB' },
+  { id: 'pt-army-beige',       label: 'ベージュ',         hex: '#DBBAA5' },
+  { id: 'pt-sakura-pink',      label: 'さくら',           hex: '#EAADBD' },
+  { id: 'pt-fossil-grey',      label: 'グレー',           hex: '#8A8C94' },
+  { id: 'pt-charcoal-black',   label: 'チャコール',       hex: '#2F2E30' },
+  { id: 'kx-k5c-velvet-mocha', label: 'モカ（コーヒー入り・限定）', hex: '#6A5B50', speck: '#241B16' }];
+const standColorOf = () => STAND_COLORS.find(x => x.id === S.standColor) || null;
+// 色の計算（Lab の距離・読みやすさ）
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgbHex = c => '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const mixHex = (a, b, t) => { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A.map((v, i) => v + (B[i] - v) * t)); };
+const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+const lumOf = h => { const [r, g, b] = hexRgb(h).map(lin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrastOf = (a, b) => { const x = lumOf(a), y = lumOf(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function labOf(h) {
+  const [r, g, b] = hexRgb(h).map(lin);
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  const X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+const dE = (a, b) => { const A = labOf(a), B = labOf(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); };
+const isWarmBrown = h => { const [L, a, b] = labOf(h); return b > 8 && a > 2 && L < 80; };
+// 紙（BGS ＋ クラフト紙）の候補
+const PAPERS = () => [...BGS.map((b, i) => ({ bg: i, tex: S.tex === 2 ? 0 : S.tex, color: b.color, label: b.label })), { bg: S.bg, tex: 2, color: KRAFT, label: 'クラフト紙' }];
+function standRecs(sc) {
+  if (!sc) return [];
+  const st = sc.hex, light = lumOf(st) > 0.45, [, sa, sb] = labOf(st), chroma = Math.hypot(sa, sb);
+  // 同系色の紙：明るさは見ずに、色み（a・b）がスタンドに近い紙
+  const tint = p => { const [, a, b] = labOf(p.color); return Math.hypot(a - sa * 0.8, b - sb * 0.8); };
+  // インク：色みの少ないスタンドなら墨、色のあるスタンドならその色を暗くしたものに近いインク
+  const inkT = chroma < 12 ? INKS[0].color : light ? mixHex(st, '#000000', 0.6) : mixHex(st, '#000000', 0.35);
+  const ok = (p, k) => contrastOf(INKS[k].color, p.color) >= 7;   // 読める
+  const all = []; PAPERS().forEach(p => INKS.forEach((k, j) => { if (ok(p, j)) all.push({ ...p, ink: j }); }));
+  const best = f => all.slice().sort((x, y) => f(x) - f(y))[0];
+  const recs = [];
+  const add = (r, title, sub) => { if (r && !recs.some(o => o.bg === r.bg && o.tex === r.tex && o.ink === r.ink)) recs.push({ ...r, title, sub }); };
+  add(best(r => r.tex === 2 ? 99 : tint(r) + 0.6 * dE(INKS[r.ink].color, inkT)), '同系色でまとめる', 'スタンドと同じ色みの紙とインク');
+  add(best(r => (r.tex === 2 ? 99 : 0) - dE(r.color, st) - (r.ink === 0 ? 8 : 0)), 'くっきり見せる', 'スタンドから浮いて、遠くから読みやすい');
+  if (isWarmBrown(st) || sc.speck) add(best(r => (r.tex === 2 ? 0 : 99) + dE(INKS[r.ink].color, inkT)), 'ナチュラル', 'クラフト紙で、木やコーヒーの質感に合う');
+  else add(best(r => (r.tex === 2 ? 99 : 0) + dE(r.color, BGS[0].color) + 0.6 * dE(INKS[r.ink].color, inkT)), 'やわらかく', '生成りの紙で、やさしい印象');
+  return recs.map(r => ({ ...r, qcColor: (() => {   // QRカードの帯の色：スタンドに近い色（なければインク色）
+    let k = 0, d = 30; QC_COLORS.forEach((c, i) => { if (i && c.c) { const e = dE(c.c, st); if (e < d) { d = e; k = i; } } }); return k; })() }));
+}
+const standCss = sc => sc.speck ? `radial-gradient(${sc.speck} .6px, transparent 1px) 0 0/5px 5px, radial-gradient(${sc.speck} .5px, transparent .9px) 2px 3px/7px 7px, ${sc.hex}` : sc.hex;
+function recButtons(sc) {
+  return standRecs(sc).map((r, i) => {
+    const on = S.bg === r.bg && S.tex === r.tex && S.ink === r.ink;
+    const paper = r.tex === 2 ? KRAFT : r.color;
+    return `<button data-strec="${i}" class="${on ? 'on' : ''}"><span class="mock" style="background:#f3efe9"><span class="cd" style="background:${paper};color:${INKS[r.ink].color}">Aa</span><span class="st" style="background:${standCss(sc)}"></span></span>
+      <span><b>${r.title}</b>${r.tex === 2 ? 'クラフト紙' : r.label}・${INKS[r.ink].label}<br><small>${r.sub}</small></span></button>`;
+  }).join('');
+}
+function renderStandColor() {
+  const st = standOf(), sc = standColorOf(), show = st.id !== 'none';
+  $('standColorBox').hidden = !show;
+  $('standColors').innerHTML = STAND_COLORS.map(c => `<button data-stcolor="${c.id}" class="${S.standColor === c.id ? 'on' : ''}"><i style="background:${standCss(c)}"></i>${c.label}</button>`).join('')
+    + `<button data-stcolor="" class="${!sc ? 'on' : ''}">決めていない</button>`;
+  $('standRecsH').hidden = $('standRecs').hidden = !sc;
+  $('standRecs').innerHTML = sc ? recButtons(sc) : '';
+  $('styleRecBox').hidden = !(show && sc);
+  if (show && sc) { $('styleRecH').textContent = `スタンドの色（${sc.label}）に合うカード`; $('styleRecs').innerHTML = recButtons(sc); }
+}
+
 function renderStand() {
   const st = standOf(), price = isPrice(), [w, h] = isQc() ? qcDims() : price ? priceDims() : CARD_DIM(effLayout()), f = standFit(w, h);
   $('stands').innerHTML = STANDS.map(x => `<button data-stand="${x.id}" class="${st.id === x.id ? 'on' : ''}">${x.label}</button>`).join('');
@@ -1298,7 +1387,8 @@ function renderStand() {
     : `${st.note}。カードの下 約${st.hide}mm が溝に隠れるので、そこには文字やQRを置きません。`;
   $('standWarn').hidden = f.ok; $('standWarn').textContent = f.msg || '';
   $('standFit').hidden = f.ok;
-  $('sm-stand') && ($('sm-stand').textContent = st.id === 'none' ? 'なし' : st.label);
+  $('sm-stand') && ($('sm-stand').textContent = st.id === 'none' ? 'なし' : st.label + (standColorOf() ? '・' + standColorOf().label : ''));
+  renderStandColor();
 }
 $('standFit').onclick = () => {
   const id = S.stand;
@@ -1554,6 +1644,8 @@ document.addEventListener('click', e => {
   if (ds.pblank != null) return doPrint('cards', 'blank');
   if (ds.pprint != null) return doPrint('cards', +ds.pprint);
   if (ds.stand) { S.stand = ds.stand; return renderAll(); }
+  if (ds.stcolor !== undefined) { S.standColor = ds.stcolor; return renderAll(); }
+  if (ds.strec !== undefined) { const r = standRecs(standColorOf())[+ds.strec]; if (r) { S.bg = r.bg; S.tex = r.tex; S.ink = r.ink; if (isQc()) S.qcColor = r.qcColor; } return renderAll(); }
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
   if (ds.porient) { S.priceOrient = ds.porient; return renderAll(); }
   if (ds.playout) { if (ds.playout === 'free' && !S.pricePos) S.pricePos = pricePosFromAuto(); S.priceLayout = ds.playout; return renderAll(); }
@@ -1870,7 +1962,7 @@ function exportObj(withImg, src) {
 }
 function exportObjInner(withImg) {
   const o = { app: APP_ID, version: APP_VER, savedAt: new Date().toISOString(), data: {} };
-  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'stand', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
+  ['mode', 'layout', 'priceSize', 'priceOrient', 'priceW', 'priceH', 'priceLayout', 'priceUnit', 'priceTax', 'priceFrame', 'priceGuide', 'priceShop', 'priceQr', 'priceEach', 'stand', 'standColor', 'logoSrc', 'font', 'ink', 'bg', 'tex', 'logoSize', 'photoX', 'photoY', 'photoZoom', 'printX', 'printY', ...KEYS_STR, ...KEYS_BOOL, 'printMarks', 'printGuide'].forEach(k => { o.data[k] = S[k]; });
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
@@ -1916,6 +2008,7 @@ function applyImport(d) {
   if (d.qcFs && typeof d.qcFs === 'object') n.qcFs = Object.fromEntries(['title', 'brand', 'sub', 'qr'].map(k => [k, Number.isFinite(d.qcFs[k]) ? Math.max(50, Math.min(k === 'qr' ? 100 : 250, Math.round(d.qcFs[k]))) : 100]));
   pick('priceSize', PSIZES.some(p => p.id === d.priceSize) ? d.priceSize : undefined);
   pick('stand', STANDS.some(x => x.id === d.stand) ? d.stand : undefined);
+  pick('standColor', typeof d.standColor === 'string' && (d.standColor === '' || STAND_COLORS.some(x => x.id === d.standColor)) ? d.standColor : undefined);
   pick('priceOrient', ['land', 'port'].includes(d.priceOrient) ? d.priceOrient : undefined);
   pick('priceLayout', ['center', 'left', 'free'].includes(d.priceLayout) ? d.priceLayout : undefined);
   if (d.pricePos && typeof d.pricePos === 'object') n.pricePos = Object.fromEntries(PRICE_POS_KEYS.filter(k => Array.isArray(d.pricePos[k]) && d.pricePos[k].length === 2 && d.pricePos[k].every(Number.isFinite)).map(k => [k, d.pricePos[k].map(v => Math.max(0, Math.min(100, v)))]));
