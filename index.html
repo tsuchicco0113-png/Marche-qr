@@ -80,7 +80,7 @@ textarea.in{line-height:1.6;resize:vertical}
 
 /* accordion */
 .top-block{display:flex;flex-direction:column;gap:10px;padding:16px 0 18px;border-bottom:1px solid var(--line2)}
-.purpose{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--field);border:1px solid var(--field);border-radius:10px;overflow:hidden;background:#fff}
+.purpose{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--field);border:1px solid var(--field);border-radius:10px;overflow:hidden;background:#fff}
 .purpose button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border:none;background:#fff;cursor:pointer}
 .purpose button b{font-size:12.5px;white-space:nowrap}.purpose button small{font-size:10.5px;color:var(--mute)}
 .purpose button.on{background:var(--ink);color:#fff}.purpose button.on small{color:#cfc8ba}
@@ -268,6 +268,18 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
 /* ===== print ===== */
 #print{display:none}
 @page{size:A4 portrait;margin:0}
+/* QRカード（QR決済＋名刺スタンド用） */
+.card.qc{--u:1;--ft:1;--fb:1;--fsub:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 0 max(calc(var(--u)*4mm), calc(var(--hide) + 1.5mm));gap:calc(var(--u)*2mm)}
+.card.qc .qc-band{align-self:stretch;flex:none;display:flex;align-items:center;justify-content:center;padding:calc(var(--u)*3mm) calc(var(--u)*3mm);font-size:calc(var(--u)*var(--ft)*13pt);font-weight:700;letter-spacing:.08em;line-height:1.25;word-break:break-word}
+.card.qc .qc-line{flex:none;margin-top:calc(var(--u)*5mm);padding:0 calc(var(--u)*4mm) calc(var(--u)*1.4mm);border-bottom:.35mm solid currentColor;font-size:calc(var(--u)*var(--ft)*12pt);font-weight:700;letter-spacing:.08em;line-height:1.25}
+.card.qc .qc-top{height:calc(var(--u)*3mm);flex:none}
+.card.qc .qc-qr{flex:none;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:calc(var(--u)*1mm)}
+.card.qc .qc-qr svg,.card.qc .qc-qr img{display:block;width:100%;height:100%;object-fit:contain}
+.card.qc .qc-who{display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*1.6mm);font-size:calc(var(--u)*var(--fb)*10pt);letter-spacing:.1em;line-height:1.2;max-width:calc(100% - var(--u)*8mm)}
+.card.qc .qc-who img{height:calc(var(--u)*var(--fb)*6mm);max-width:calc(var(--u)*var(--fb)*18mm);object-fit:contain}
+.card.qc .qc-sub{font-size:calc(var(--u)*var(--fsub)*6.6pt);letter-spacing:.06em;opacity:.8;line-height:1.4;max-width:calc(100% - var(--u)*8mm);white-space:pre-line}
+.card.qc .qc-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.6mm);width:100%}
+.qc-hold{display:flex;justify-content:center;padding:6px 0 4px}
 .hidezone{position:absolute;left:0;right:0;bottom:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(181,83,47,.20) 0 1.2mm,rgba(181,83,47,.06) 1.2mm 2.4mm);border-top:.3mm dashed #b5532f;display:flex;align-items:center;justify-content:center;font:600 5pt 'Zen Kaku Gothic New',sans-serif;color:#8e3f22;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
 @media print{
   html,body{width:210mm;background:#fff!important}
@@ -303,12 +315,14 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button data-purpose="shop"><b>店頭モード</b><small>お客さま向け</small></button>
         <button data-purpose="biz"><b>ビジネスモード</b><small>同業者・卸先向け</small></button>
         <button data-purpose="price"><b>プライスカード</b><small>値札・商品札</small></button>
+        <button data-purpose="qrcard"><b>QRカード</b><small>決済・SNS・スタンド用</small></button>
       </div>
       <div id="shopTpl" style="display:flex;flex-direction:column;gap:6px">
         <button class="opt" data-mode="card"><b>① リンクまとめ名刺</b><span>屋号・一言・リンク3つ</span></button>
         <button class="opt" data-mode="url"><b>URLをそのままQRに</b><span>ショップ等へ直接</span></button>
       </div>
       <p class="hint" id="priceHint">商品名と価格を入れると、スタンドに立てる値札ができます。A4にまとめて印刷して切り分けられます。</p>
+      <p class="hint" id="qcHint">QR決済＋名刺スタンドに立てるカードを作ります。決済（PayPayなど）の店舗QR、SNS・ショップのQR、連絡先のQRを、見出し付きの1枚にして、A4にまとめて印刷できます。</p>
       <p class="hint" id="bizHint">スキャンすると相手のスマホの連絡先に、あなたの名前・屋号・電話・メールがそのまま登録されます（vCard形式）。名刺交換や卸先とのやり取りに。</p>
       <p class="hint" style="margin:0">電子ペーパー（PaperDIY・EZ Sign）の画面づくりは <a href="https://tsuchicco0113-png.github.io/Marche-qr-DIGITAL/" target="_blank" rel="noopener">Marché QR DIGITAL</a> に分かれました。</p>
     </div>
@@ -382,6 +396,37 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
           <button class="btn" id="priceBulkAdd">貼り付けた内容を追加</button>
         </div>
       </details>
+    </div></details>
+
+    <details class="acc" id="secQc" data-sec="qc"><summary><h2>QRカード</h2><span class="sm" id="sm-qc"></span></summary><div class="acc-body">
+      <span class="sub-h">サイズ（QR決済スタンドの溝に合わせた縦向き）</span>
+      <div class="layouts" id="qcSizes"></div>
+      <span class="sub-h">カードに入れるQR</span>
+      <div style="display:flex;flex-direction:column;gap:6px" id="qcSrcs"></div>
+      <label class="f" id="qcUrlRow">URL（決済サービスの店舗QRのURLなど）<input class="in" id="qcUrl" placeholder="https://"></label>
+      <div id="qcImgRow" style="display:flex;flex-direction:column;gap:8px">
+        <div class="logo-row"><div class="logo-box" id="qcImgBox">未設定</div><div style="display:flex;flex-direction:column;gap:6px;flex:1"><button class="btn" id="qcImgUp">QRの画像を選ぶ</button><button class="btn" id="qcImgDel">画像を外す</button></div></div>
+        <input type="file" id="qcImgIn" accept="image/*" hidden>
+        <p class="hint" style="margin:0">決済サービスの管理画面などからダウンロードした、店舗QRの画像をそのまま使います（写真から切り抜くときは、真上から撮って余白を少し残してください）。読み取れるか、印刷したら必ずスマホで試してください。</p>
+      </div>
+      <span class="sub-h">見出し</span>
+      <div class="seg" style="grid-template-columns:repeat(3,1fr)" id="qcBands"></div>
+      <input class="in" id="qcTitle" placeholder="お支払いはこちら">
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="qcPresets"></div>
+      <span class="sub-h" id="qcColorsH">帯の色</span>
+      <div class="swatches" id="qcColors" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      <label class="f">QRの下のひとこと<input class="in" id="qcSub" placeholder="スマホで読み取ってください"></label>
+      <label class="f">補足（使えるお支払い・アカウント名など／空欄でなし）<textarea class="in" id="qcNote" rows="2" placeholder="PayPay・d払い・楽天ペイ"></textarea></label>
+      <label class="chk"><input type="checkbox" id="qcBrand"><span style="flex:1">店名・ロゴを入れる</span></label>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;font-weight:700">大きさ</span><button class="txtbtn" id="qcFsReset" style="padding:0;font-size:11px">リセット</button></div>
+        <div class="rng"><span style="width:52px">見出し</span><input type="range" id="qcFsTitle" min="50" max="250" step="5"><output id="qcFsTitleO"></output></div>
+        <div class="rng"><span style="width:52px">店名</span><input type="range" id="qcFsBrand" min="50" max="250" step="5"><output id="qcFsBrandO"></output></div>
+        <div class="rng"><span style="width:52px">ひとこと</span><input type="range" id="qcFsSub" min="50" max="250" step="5"><output id="qcFsSubO"></output></div>
+        <div class="rng"><span style="width:52px">QR</span><input type="range" id="qcFsQr" min="50" max="100" step="5"><output id="qcFsQrO"></output></div>
+        <p class="hint" style="margin:0">QRは、残った場所いっぱいの大きさ（100%）が標準です。文字を大きくすると、そのぶんQRが小さくなります。</p>
+      </div>
+      <label class="f">刷る枚数（空欄なら A4 1枚分）<input class="in" id="qcCopies" type="number" min="1" max="200" inputmode="numeric"></label>
     </div></details>
 
     <details class="acc" id="secPriceDesign" data-sec="pricedesign"><summary><h2>カードのサイズと表示</h2><span class="sm" id="sm-pricedesign"></span></summary><div class="acc-body">
@@ -525,6 +570,10 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
   <div class="panel" id="pricePanel" hidden>
     <div class="panel-h"><b>プライスカード</b><span id="priceInfo"></span></div>
     <div id="priceList"></div>
+  </div>
+  <div class="panel" id="qcPanel" hidden>
+    <div class="panel-h"><b>QRカード</b><span id="qcInfo"></span></div>
+    <div class="qc-hold"><div class="card-holder" id="qcHolder"></div></div>
   </div>
   <div class="panel" id="cardPanel">
     <div class="panel-h"><b>名刺</b><span id="cardSize"></span></div>
@@ -824,6 +873,7 @@ const DEF = {
   priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
   priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
   stand: 'none',
+  qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
   open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
@@ -831,13 +881,15 @@ let S = JSON.parse(DEF0);
 try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) { const D = JSON.parse(DEF0); S = { ...D, ...sv, priceFs: { ...D.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : D.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV === 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : D.priceItems, priceV: 2 }; } } catch (e) {}
 
 S.bgUrl = '';
-if (!['shop', 'biz', 'price'].includes(S.purpose)) S.purpose = 'shop';   // 電子ペーパーは Marché QR DIGITAL へ分離
+if (!['shop', 'biz', 'price', 'qrcard'].includes(S.purpose)) S.purpose = 'shop';
+S.qcFs = { title: 100, brand: 100, sub: 100, qr: 100, ...(S.qcFs || {}) };   // 電子ペーパーは Marché QR DIGITAL へ分離
 let storeMsg = '';
 function save() {
   const attempts = [
     [S, ''],
-    [{ ...S, photo: null, paperPages: undefined }, '名刺の写真が大きすぎてブラウザに保存できませんでした。このまま印刷はできますが、次に開いたときは写真が消えています。'],
-    [{ ...S, photo: null, logo: null, paperPages: undefined }, '画像が大きすぎてブラウザに保存できませんでした。文字の内容だけ保存しています（写真・ロゴは次回消えます）。ロゴは「URLで指定」にすると容量を使いません。']];
+    [{ ...S, qcImg: null, paperPages: undefined }, 'QRカードの画像が大きすぎてブラウザに保存できませんでした。このまま印刷はできますが、次に開いたときは画像が消えています。'],
+    [{ ...S, photo: null, qcImg: null, paperPages: undefined }, '名刺の写真が大きすぎてブラウザに保存できませんでした。このまま印刷はできますが、次に開いたときは写真が消えています。'],
+    [{ ...S, photo: null, logo: null, qcImg: null, paperPages: undefined }, '画像が大きすぎてブラウザに保存できませんでした。文字の内容だけ保存しています（写真・ロゴは次回消えます）。ロゴは「URLで指定」にすると容量を使いません。']];
   let msg = 'ブラウザに保存できませんでした（プライベートモードや容量不足の可能性）。閉じる前にQR・印刷を済ませてください。';
   for (const [obj, m] of attempts) { try { localStorage.setItem(KEY, JSON.stringify(obj)); msg = m; break; } catch (e) {} }
   if (msg !== storeMsg) { storeMsg = msg; $('storeWarn').textContent = msg; $('storeWarn').hidden = !msg; }
@@ -884,6 +936,18 @@ function qrSvg(q, color, px, logoSrc, bgFill) {
 const CARD_DIM = l => l === 'tall' ? [55, 91] : [91, 55];
 const isBiz = () => S.purpose === 'biz';
 const isPrice = () => S.purpose === 'price';
+const isQc = () => S.purpose === 'qrcard';
+/* QRカード：QR決済＋名刺スタンドの「QRカードの大きさ」と同じ（縦向き、mm） */
+const QC_SIZES = [{ id: 'a7', label: 'A7縦 74×105', w: 74, h: 105 }, { id: 'meishi', label: '名刺縦 55×91', w: 55, h: 91 }, { id: 'sq80', label: '正方形 80×80', w: 80, h: 80 }, { id: 'hagaki', label: 'はがき縦 100×148', w: 100, h: 148 }];
+const QC_SRCS = [
+  { id: 'url', label: 'URLを入れる', sub: '決済の店舗QR・SNSなど' },
+  { id: 'img', label: 'QRの画像を貼る', sub: '決済サービスが発行したQR' },
+  { id: 'shop', label: '店頭モードのQR', sub: 'リンクまとめ・ショップURL' },
+  { id: 'vcard', label: 'ビジネスモードの連絡先', sub: 'スキャンで連絡先に登録' }];
+const QC_BANDS = [{ id: 'band', label: '帯' }, { id: 'line', label: '下線' }, { id: 'none', label: 'なし' }];
+const QC_COLORS = [{ label: 'インク色', c: '' }, { label: 'グレージュ', c: '#b3a191' }, { label: 'モカ', c: '#7a6252' }, { label: 'テラコッタ', c: '#b5532f' }, { label: 'セージ', c: '#7d9474' }, { label: 'ネイビー', c: '#3d4f6b' }, { label: 'スミ', c: '#2b2724' }];
+const QC_PRESETS = ['お支払いはこちら', 'キャッシュレス決済', 'Instagramはこちら', 'LINEで友だち追加', 'オンラインショップ', '連絡先を登録'];
+const qcDims = () => { const z = QC_SIZES.find(x => x.id === S.qcSize) || QC_SIZES[0]; return [z.w, z.h]; };
 
 /* ---- price cards ---- */
 /* 値札のサイズ：HEXA STAGE のスタンドの寸法に合わせる（w×h は横向きのとき） */
@@ -908,6 +972,7 @@ function standFit(w, h) {   // そのまま差せるか → { ok, msg }
   if (st.fits.some(([fw, fh]) => near(fw, w) && near(fh, h))) return { ok: true };
   if (st.id === 'card') return w <= 91.5 ? { ok: true } : { ok: false, msg: `横${w}mmは名刺スタンドの溝（92mm・両端を閉じた形）に入りません。スタンドの「溝の両端」を貫通にして、横幅を${Math.ceil(w + 9)}mm以上で刷ってください。` };
   if (st.id === 'tag') return { ok: false, msg: `値札スタンドの溝は、名刺半分（横55）・A8縦（横52）・A8横（横74）用です。いまのカードは横${w}×縦${h}mmです。` };
+  if (isQc()) return { ok: true };
   if (!isPrice()) return { ok: false, msg: 'QR決済スタンドに名刺を立てるときは、縦（55×91）で差します。名刺レイアウトを「縦型」にしてください（横の名刺は、手前のトレイに置けます）。' };
   return { ok: false, msg: `QR決済スタンドの「QRカードの大きさ」を「下の数値（custom）」にして、横${w}・縦${h}mmで刷ってください（標準はA7縦・名刺縦・正方形80・はがき縦）。` };
 }
@@ -967,8 +1032,34 @@ function pricePosFromAuto() {
   box.remove(); S.priceLayout = keep;
   return { ...out, ...got };
 }
+/* QRカード（HTML）。QRの大きさは、残った高さと横幅から決める */
+function qcCardHtml(q, extra) {
+  const [pw, ph] = qcDims(), u = Math.max(0.7, Math.min(1.45, Math.min(pw / 74, ph / 105))), col = ink(), base = paperBase(S.tex, S.bg), paper = paperCss(S.tex, S.bg, '34mm');
+  const F = S.qcFs, pt = v => v * 0.3528, title = clean(S.qcTitle), band = title ? S.qcBand : 'none', bc = (QC_COLORS[S.qcColor] || QC_COLORS[0]).c || col;
+  const logo = S.qcBrand && S.logoCard ? effLogo() : '', brand = S.qcBrand ? clean(S.brand) : '', sub = clean(S.qcSub), note = String(S.qcNote || '').trim().slice(0, 120);
+  // 高さの見積り（mm）
+  const hide = standHide(), padB = Math.max(u * 4, hide + 1.5), gap = u * 2;
+  const topH = band === 'band' ? pt(13 * u * F.title / 100) * 1.25 * (title.length * pt(13 * u * F.title / 100) > pw - 6 * u ? 2 : 1) + u * 6 : band === 'line' ? u * 5 + pt(12 * u * F.title / 100) * 1.25 + u * 1.4 : u * 3;
+  const whoH = brand || logo ? Math.max(pt(10 * u * F.brand / 100) * 1.2, logo ? 6 * u * F.brand / 100 : 0) + gap : 0;
+  const subH = sub ? pt(6.6 * u * F.sub / 100) * 1.4 + gap : 0, noteH = note ? pt(6.6 * u * F.sub / 100) * 1.4 * Math.min(3, note.split('\n').length) + gap : 0;
+  const avail = ph - topH - gap * 2 - whoH - subH - noteH - padB;
+  const qmax = Math.max(14, Math.min(pw - u * 10, avail)), qmm = Math.round(qmax * F.qr / 10) / 10;
+  const qr = S.qcSrc === 'img' ? (S.qcImg ? `<img src="${S.qcImg}" alt="">` : '<span style="font-size:8pt;opacity:.5">QRの画像を選んでください</span>')
+    : q ? qrSvg(q, col, 0, CUR.noCenter || !S.logoQr ? '' : effLogo(), '#ffffff') : '<span style="font-size:8pt;opacity:.5">QRを作れません</span>';
+  const head = band === 'band' ? `<div class="qc-band" style="background:${bc};color:#fff">${esc(title)}</div>` : band === 'line' ? `<div class="qc-line" style="border-color:${bc}">${esc(title)}</div>` : '<div class="qc-top"></div>';
+  const who = brand || logo ? `<div class="qc-who">${logo ? `<img src="${esc(logo)}" alt="" onerror="this.remove()">` : ''}${brand ? `<span>${esc(brand)}</span>` : ''}</div>` : '';
+  return `<div class="card qc" style="--hide:${hide}mm;--u:${u.toFixed(3)};--ft:${F.title / 100};--fb:${F.brand / 100};--fsub:${F.sub / 100};width:${pw}mm;height:${ph}mm;color:${col};font-family:${FONTS[S.font].family};background:${paper};${extra || ''}">
+    ${head}<div class="qc-body"><div class="qc-qr" style="width:${qmm}mm;height:${qmm}mm">${qr}</div>${who}${sub ? `<div class="qc-sub">${esc(sub)}</div>` : ''}${note ? `<div class="qc-sub">${esc(note)}</div>` : ''}</div></div>`;
+}
+const qcPer = () => { const g = sheetGeom(); return g.cols * g.rows; };
+const qcCount = () => { const n = Math.round(+S.qcCopies); return n >= 1 ? Math.min(200, n) : qcPer(); };
 /* sheet geometry: 名刺サイズは品番51072の固定割付、それ以外はA4に均等割付 */
 function sheetGeom() {
+  if (isQc()) {
+    if (S.qcSize === 'meishi') return { ...SHEET, rot: true };   // 名刺縦 55×91 は名刺用紙に90°回して刷る
+    const [qw, qh] = qcDims(), M = 6, cols = Math.floor((210 - M * 2) / qw), rows = Math.floor((297 - M * 2) / qh);
+    return { cols, rows, w: qw, h: qh, ml: (210 - cols * qw) / 2, mt: (297 - rows * qh) / 2, rot: false };
+  }
   if (!isPrice()) return { ...SHEET, rot: effLayout() === 'tall' };
   const [pw, ph] = priceDims();
   if (S.priceSize === 'meishi') return { ...SHEET, rot: ph > pw };
@@ -1187,7 +1278,7 @@ function renderPriceControls() {
 }
 const LAYOUT_NAME = Object.fromEntries(LAYOUTS.map(l => [l.id, l.label]));
 function renderStand() {
-  const st = standOf(), price = isPrice(), [w, h] = price ? priceDims() : CARD_DIM(effLayout()), f = standFit(w, h);
+  const st = standOf(), price = isPrice(), [w, h] = isQc() ? qcDims() : price ? priceDims() : CARD_DIM(effLayout()), f = standFit(w, h);
   $('stands').innerHTML = STANDS.map(x => `<button data-stand="${x.id}" class="${st.id === x.id ? 'on' : ''}">${x.label}</button>`).join('');
   $('standHint').textContent = st.id === 'none' ? 'スタンドに立てるときに選ぶと、カードの下の端（溝に隠れる所）に文字やQRが入らないように余白をとります。プレビューでは隠れる所に斜線が出ます（印刷はされません）。'
     : `${st.note}。カードの下 約${st.hide}mm が溝に隠れるので、そこには文字やQRを置きません。`;
@@ -1197,24 +1288,41 @@ function renderStand() {
 }
 $('standFit').onclick = () => {
   const id = S.stand;
-  if (isPrice()) Object.assign(S, id === 'tag' ? { priceSize: 'half', priceOrient: 'land' } : id === 'qr' ? { priceSize: 'a7', priceOrient: 'port' } : { priceSize: 'meishi', priceOrient: 'land' });
+  if (isQc()) Object.assign(S, id === 'card' ? { qcSize: 'a7' } : {});
+  else if (isPrice()) Object.assign(S, id === 'tag' ? { priceSize: 'half', priceOrient: 'land' } : id === 'qr' ? { priceSize: 'a7', priceOrient: 'port' } : { priceSize: 'meishi', priceOrient: 'land' });
   else if (id === 'qr') S.layout = 'tall';
   else if (id === 'card') S.layout = 'std';
   renderAll();
 };
+function renderQcControls() {
+  $('qcSizes').innerHTML = QC_SIZES.map(z => `<button data-qcsize="${z.id}" class="${S.qcSize === z.id ? 'on' : ''}">${z.label}</button>`).join('');
+  $('qcSrcs').innerHTML = QC_SRCS.map(x => `<button class="opt${S.qcSrc === x.id ? ' on' : ''}" data-qcsrc="${x.id}"><b>${x.label}</b><span>${x.sub}</span></button>`).join('');
+  $('qcUrlRow').hidden = S.qcSrc !== 'url'; $('qcImgRow').hidden = S.qcSrc !== 'img';
+  $('qcImgBox').innerHTML = S.qcImg ? `<img src="${S.qcImg}" alt="">` : '未設定'; $('qcImgDel').hidden = !S.qcImg;
+  $('qcBands').innerHTML = QC_BANDS.map(b => `<button data-qcband="${b.id}" class="${S.qcBand === b.id ? 'on' : ''}">${b.label}</button>`).join('');
+  $('qcPresets').innerHTML = QC_PRESETS.map(t => `<button class="chip" data-qcpre="${esc(t)}" style="padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:11px;cursor:pointer">${esc(t)}</button>`).join('');
+  $('qcColorsH').hidden = $('qcColors').hidden = S.qcBand === 'none';
+  $('qcColors').innerHTML = QC_COLORS.map((k, i) => `<button data-qccolor="${i}" title="${k.label}" class="${S.qcColor === i ? 'on' : ''}" style="display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid ${S.qcColor === i ? 'var(--ink,#2b2724)' : 'var(--line)'};border-radius:7px;background:#fff;font-size:11px;cursor:pointer"><i style="width:14px;height:14px;border-radius:50%;background:${k.c || ink()}"></i>${k.label}</button>`).join('');
+  $('qcBrand').checked = !!S.qcBrand;
+  [['qcFsTitle', 'title'], ['qcFsBrand', 'brand'], ['qcFsSub', 'sub'], ['qcFsQr', 'qr']].forEach(([id, k]) => { $(id).value = S.qcFs[k]; $(id + 'O').textContent = S.qcFs[k] + '%'; });
+  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies'].forEach(k => { if (document.activeElement !== $(k)) $(k).value = S[k] ?? ''; });
+}
 function renderControls() {
-  const biz = isBiz(), price = isPrice(), shopCard = !biz && !price && S.mode === 'card', shopUrl = (!biz && !price && S.mode === 'url') || (price && S.priceQr);
+  const qc = isQc(), qcShop = qc && S.qcSrc === 'shop';
+  const biz = isBiz(), price = isPrice(), shopCard = ((!biz && !price && !qc) || qcShop) && S.mode === 'card', shopUrl = (((!biz && !price && !qc) || qcShop) && S.mode === 'url') || (price && S.priceQr);
   document.querySelectorAll('[data-purpose]').forEach(b => b.classList.toggle('on', b.dataset.purpose === S.purpose));
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === S.mode));
-  $('shopTpl').hidden = biz || price; $('bizHint').hidden = !biz; $('priceHint').hidden = !price;
-  $('secPrice').hidden = !price; $('secPriceDesign').hidden = !price; $('secLayout').hidden = price; $('secCap').hidden = price;
-  $('cardPanel').hidden = price; $('pricePanel').hidden = !price; $('qrPanel').hidden = price && !S.priceQr;
-  $('rowSns').hidden = price; $('brandLabel').textContent = price ? '店名（カードに小さく入ります）' : '屋号';
-  $('open').hidden = price; $('copy').hidden = price; $('dlGrid').hidden = price && !S.priceQr;
+  const noQr = (price && !S.priceQr) || (qc && S.qcSrc === 'img');
+  $('shopTpl').hidden = biz || price || (qc && !qcShop); $('bizHint').hidden = !biz; $('priceHint').hidden = !price; $('qcHint').hidden = !qc;
+  $('secPrice').hidden = !price; $('secPriceDesign').hidden = !price; $('secLayout').hidden = price || qc; $('secCap').hidden = price || qc; $('secQc').hidden = !qc;
+  $('cardPanel').hidden = price || qc; $('pricePanel').hidden = !price; $('qcPanel').hidden = !qc; $('qrPanel').hidden = noQr;
+  $('rowSns').hidden = price || qc; $('brandLabel').textContent = price ? '店名（カードに小さく入ります）' : qc ? '店名（QRの下に入ります）' : '屋号';
+  $('open').hidden = price || (qc && !shopCard && S.qcSrc !== 'vcard'); $('copy').hidden = price || noQr; $('dlGrid').hidden = noQr;
   $('secUrl').hidden = !shopUrl;
   $('secLinks').hidden = !shopCard;
-  $('secVcard').hidden = !biz;
-  $('rowBio').hidden = biz || price;
+  $('secVcard').hidden = !(biz || (qc && S.qcSrc === 'vcard'));
+  $('rowBio').hidden = biz || price || (qc && !shopCard);
+  if (qc) renderQcControls();
   $('phonePanel').hidden = !shopCard;
   $('contactPanel').hidden = !biz;
   $('copy').textContent = biz ? '内容コピー' : 'URLコピー';
@@ -1222,7 +1330,7 @@ function renderControls() {
   $('share').hidden = !(biz && canShare);
   $('vcPhotoVcf').checked = !!S.vcPhotoVcf; $('vcPhotoQr').checked = !!S.vcPhotoQr;
   $('open').textContent = biz ? '連絡先ファイル（.vcf）を保存' : 'リンクページを開いて確認';
-  document.querySelectorAll('details.acc').forEach(d => { const k = d.dataset.sec; d.open = !!((S.open || {})[k] ?? (k === 'price' || k === 'pricedesign')); });
+  document.querySelectorAll('details.acc').forEach(d => { const k = d.dataset.sec; d.open = !!((S.open || {})[k] ?? (k === 'price' || k === 'pricedesign' || k === 'qc')); });
   $('links').innerHTML = S.links.map((l, i) => `<div class="linkrow">
       <div class="col"><input class="in" data-i="${i}" data-k="label" placeholder="ボタンの文字" value="${esc(l.label)}"><input class="in u" data-i="${i}" data-k="url" placeholder="https://" value="${esc(l.url)}"></div>
       <button class="ib" data-mv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-mv="${i},1" aria-label="下へ">▼</button><button class="ib x" data-del="${i}" aria-label="削除">×</button></div>`).join('');
@@ -1270,7 +1378,10 @@ async function renderPreview() {
   let target = '', warn = '', costHtml = '', photoInQr = false;
   if (isPrice()) {
     target = S.priceQr ? fullUrl((S.url || '').trim()) : '';
-  } else if (isBiz()) {
+  } else if (isQc() && (S.qcSrc === 'url' || S.qcSrc === 'img')) {
+    target = S.qcSrc === 'url' ? fullUrl(clean(S.qcUrl)) : '';
+    if (S.qcSrc === 'url' && !clean(S.qcUrl)) warn = 'QRにするURLを入れてください（決済サービスの店舗QRのURL、InstagramやLINEのURLなど）。';
+  } else if (isBiz() || (isQc() && S.qcSrc === 'vcard')) {
     let info = '', qrPhoto = '';
     if (!effLogo()) info = 'ロゴを設定すると、連絡先のアイコンになります。';
     else {
@@ -1333,7 +1444,7 @@ async function renderPreview() {
   $('nfcHint').innerHTML = isBiz() ? (!nb ? '姓・名か屋号を入れてください。' : (fit ? `NFCなら <b>${fit.name}</b> 以上に入ります（NFC Toolsの「連絡先」レコード）。` : 'NFCタグには入りません。') + 'ただし連絡先のNFCはiPhoneで開けない機種があるため、ビジネスモードは<b>QRコードが確実</b>です。') : !nb ? '' : fit ? `<b>${fit.name}</b> 以上のタグに書き込めます。${fit.name === 'NTAG213' ? '一番安いタグでOKです。' : S.mode === 'card' ? 'NTAG213に収めたい場合は、一言・リンク名・ロゴURLを短くするか、公開URLを短いドメインにしてください。' : ''}` : 'どのタグにも入りません。文字を減らしてください。';
 
   // QR panel
-  const qrmm = isPrice() ? 13 * priceU(...priceDims()) : isBiz() ? ({ std: 26, tall: 28 }[effLayout()] || 26) : ({ std: 26, tall: 30, photo: 24, photobg: 24 }[effLayout()] || 26);
+  const qrmm = isQc() ? (() => { const m = /qc-qr" style="width:([\d.]+)mm/.exec(qcCardHtml(q) || ''); return m ? +m[1] : 40; })() : isPrice() ? 13 * priceU(...priceDims()) : isBiz() ? ({ std: 26, tall: 28 }[effLayout()] || 26) : ({ std: 26, tall: 30, photo: 24, photobg: 24 }[effLayout()] || 26);
   if (q) {
     $('qrHolder').innerHTML = qrSvg(q, ink(), 240, qlogo);
     const cell = qrmm / (q.size + 4);
@@ -1345,7 +1456,7 @@ async function renderPreview() {
       else tip += isBiz() ? 'メモ・住所など使わない項目を空にすると読み取りやすくなります。' : '一言やリンク名、ロゴURLを短くすると読み取りやすくなります。';
       tip += '</span>';
     }
-    $('qrMeta').innerHTML = `${isPrice() ? 'プライスカード' : '名刺'}（${Math.round(qrmm * 10) / 10}mm角）で1マス ${cell.toFixed(2)}mm` + tip;
+    $('qrMeta').innerHTML = `${isPrice() ? 'プライスカード' : isQc() ? 'QRカード' : '名刺'}（${Math.round(qrmm * 10) / 10}mm角）で1マス ${cell.toFixed(2)}mm` + tip;
   } else {
     $('qrHolder').innerHTML = '<div style="width:240px;height:240px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8a8379">QRコードを作れません</div>';
     $('qrInfo').textContent = ''; $('qrMeta').textContent = target ? '長すぎます' : '';
@@ -1356,6 +1467,15 @@ async function renderPreview() {
     $('priceList').innerHTML = list.length ? list.map(it => `<div class="pc-wrap"><div class="card-holder" style="width:${Math.round(pw * 3.7795 * sc)}px;height:${Math.round(ph * 3.7795 * sc)}px">${priceCardHtml(it, q, pw, ph, `transform:scale(${sc})`)}</div><button class="btn" data-pprint="${list.indexOf(it)}">この商品だけ印刷（${priceCopies(it) || pricePer()}枚）</button></div>`).join('') : '<p class="hint" style="padding:30px 0">商品名と価格を入れると、ここに表示されます。</p>';
     markHidden($('priceList'));
     $('priceInfo').textContent = `${pw} × ${ph} mm・${list.length}種／${priceExpanded().length}枚`;
+  }
+  // QR card
+  if (isQc()) {
+    const [qw, qh] = qcDims(), sc = Math.max(0.6, Math.min(2.2, 430 / (qh * 3.7795), 360 / (qw * 3.7795))), hq = $('qcHolder');
+    hq.style.width = Math.round(qw * 3.7795 * sc) + 'px'; hq.style.height = Math.round(qh * 3.7795 * sc) + 'px';
+    hq.innerHTML = qcCardHtml(q, `transform:scale(${sc});transform-origin:0 0`);
+    markHidden(hq);
+    $('qcInfo').textContent = `${qw} × ${qh} mm・${qcCount()}枚`;
+    const sm2 = $('sm-qc'); if (sm2) sm2.textContent = (QC_SIZES.find(z => z.id === S.qcSize) || {}).label || '';
   }
   // card
   const [cw, ch] = CARD_DIM(effLayout()), holder = $('cardHolder');
@@ -1408,7 +1528,12 @@ function renderAll() { renderControls(); syncFields(); renderPreview(); if (wind
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || t.disabled) return;
   const ds = t.dataset;
-  if (ds.purpose) { S.purpose = ds.purpose; return renderAll(); }
+  if (ds.purpose) { S.purpose = ds.purpose; if (ds.purpose === 'qrcard' && S.stand === 'none') S.stand = 'qr'; return renderAll(); }
+  if (ds.qcsize) { S.qcSize = ds.qcsize; return renderAll(); }
+  if (ds.qcsrc) { S.qcSrc = ds.qcsrc; return renderAll(); }
+  if (ds.qcband) { S.qcBand = ds.qcband; return renderAll(); }
+  if (ds.qccolor) { S.qcColor = +ds.qccolor; return renderAll(); }
+  if (ds.qcpre) { S.qcTitle = ds.qcpre; return renderAll(); }
   if (ds.pblank != null) return doPrint('cards', 'blank');
   if (ds.pprint != null) return doPrint('cards', +ds.pprint);
   if (ds.stand) { S.stand = ds.stand; return renderAll(); }
@@ -1450,6 +1575,22 @@ $('priceBulkAdd').onclick = () => {
   toast(rows.length > room ? `${room}件を追加しました（上限${MAX_PRICE}件）` : `${rows.length}件を追加しました`);
 };
 [['fsName', 'name'], ['fsPrice', 'price'], ['fsNote', 'note'], ['fsShop', 'shop'], ['fsQr', 'qr']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.priceFs[k] = Number(e.target.value); $(id + 'O').textContent = S.priceFs[k] + '%'; renderPreview(); }));
+['qcUrl', 'qcTitle', 'qcSub', 'qcNote', 'qcCopies'].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value; renderPreview(); }));
+$('qcBrand').addEventListener('change', e => { S.qcBrand = e.target.checked; renderPreview(); });
+[['qcFsTitle', 'title'], ['qcFsBrand', 'brand'], ['qcFsSub', 'sub'], ['qcFsQr', 'qr']].forEach(([id, k]) => $(id).addEventListener('input', e => { S.qcFs[k] = +e.target.value; $(id + 'O').textContent = S.qcFs[k] + '%'; renderPreview(); }));
+$('qcFsReset').onclick = () => { S.qcFs = { title: 100, brand: 100, sub: 100, qr: 100 }; renderAll(); };
+$('qcImgUp').onclick = () => $('qcImgIn').click();
+$('qcImgDel').onclick = () => { S.qcImg = null; renderAll(); };
+$('qcImgIn').onchange = e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { const im = new Image(); im.onload = () => {   // QRは拡大しても粗くならないよう、ドットのまま縮める（最大900px）
+    const k = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    const x = c.getContext('2d'); x.imageSmoothingEnabled = k < 1; x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+    S.qcImg = c.toDataURL('image/png'); renderAll();
+  }; im.src = rd.result; };
+  rd.readAsDataURL(f);
+};
 $('pricePosReset').onclick = () => { S.pricePos = pricePosFromAuto(); renderAll(); };
 $('priceList').addEventListener('pointerdown', e => {
   const t = e.target.closest('.card.pc.free .pc-el'); if (!t) return;
@@ -1626,7 +1767,8 @@ function buildSheet(mode, only) {   // mode: 'cards' | 'check'; only: 商品の�
       if (only === 'blank') chunks = [Array(per).fill(one({ blank: true }))];   // 手書き用の空白カード（枠・店名・ロゴだけ）
       else if (only != null || S.priceEach) (only != null ? [priceItemsClean()[only]].filter(Boolean) : priceItemsClean()).forEach(it => { const n = priceCopies(it) || per, c = one(it); for (let k = 0; k < n; k += per) chunks.push(Array(Math.min(per, n - k)).fill(c)); });   // 1商品ごとに新しいシート
       else { const cards = priceExpanded().map(one); for (let k = 0; k < cards.length; k += per) chunks.push(cards.slice(k, k + per)); }
-    } else chunks = [Array(per).fill(rot(cardHtml(CUR.qr)))];
+    } else if (isQc()) { const c = rot(qcCardHtml(CUR.qr)), n = qcCount(); for (let k = 0; k < n; k += per) chunks.push(Array(Math.min(per, n - k)).fill(c)); }
+    else chunks = [Array(per).fill(rot(cardHtml(CUR.qr)))];
   }
   let d = '';
   if (mode === 'check' || S.printGuide) {
@@ -1651,13 +1793,21 @@ const fmtMm = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1)
 function doPrint(mode, only) {
   if (isPrice() && mode === 'cards' && only !== 'blank' && !priceItemsClean().length) return toast('商品名か価格を入れてください');
   $('print').innerHTML = buildSheet(mode, only);
-  const prev = document.title; document.title = fileBase() + (mode === 'check' ? '_位置確認' : isPrice() ? '_プライスカード' : '_名刺');
+  const prev = document.title; document.title = fileBase() + (mode === 'check' ? '_位置確認' : isPrice() ? '_プライスカード' : isQc() ? '_QRカード' : '_名刺');
   const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
   window.addEventListener('afterprint', restore);
   setTimeout(() => window.print(), 80);
 }
 /* 印刷パネルの説明と印刷ボタンの文言（モード・サイズに合わせる） */
 function syncPrintInfo() {
+  if (isQc()) {
+    const g = sheetGeom(), [qw, qh] = qcDims(), per = g.cols * g.rows, n = qcCount(), pages = Math.ceil(n / per), meishi = S.qcSize === 'meishi';
+    $('printH').textContent = meishi ? '印刷（A4 10面 名刺サイズ）' : `印刷（A4 ${per}面 ${qw}×${qh}mm）`;
+    $('printFmt').textContent = meishi ? '品番 51072' : `${qw}×${qh}mm`; $('printFmt2').textContent = meishi ? 'フォーマット F10A4-1' : `A4に ${g.cols}列×${g.rows}段`;
+    $('printInfo').textContent = meishi ? '名刺サイズのミシン目入り用紙に、90°回して刷ります。' : '厚紙（はがき・ケント紙など）にA4へ並べて刷り、トンボを目安に切り分けます。';
+    $('priceEachRow').hidden = true;
+    $('printLabel').textContent = `QRカードを印刷（${n}枚・${pages}ページ）`; return;
+  }
   if (!isPrice()) {
     $('printH').textContent = '印刷（A4 10面 名刺サイズ）'; $('printFmt').textContent = '品番 51072'; $('printFmt2').textContent = 'フォーマット F10A4-1';
     $('printInfo').textContent = '91×55mm × 10面（2列×5段）・用紙の上下11mm／左右14mm。縦型レイアウトは90°回して同じ用紙に刷ります。';
@@ -1706,6 +1856,8 @@ function exportObjInner(withImg) {
   o.data.purpose = S.purpose;
   o.data.links = S.links.map(l => ({ label: l.label || '', url: l.url || '' }));
   o.data.priceFs = { ...S.priceFs };
+  ['qcSize', 'qcSrc', 'qcUrl', 'qcBand', 'qcTitle', 'qcColor', 'qcSub', 'qcNote', 'qcBrand', 'qcCopies'].forEach(k => { o.data[k] = S[k]; }); o.data.qcFs = { ...S.qcFs };
+  if (withImg) o.data.qcImg = S.qcImg || null;
   if (S.pricePos) o.data.pricePos = pricePos();
   o.data.priceItems = S.priceItems.map(it => ({ name: it.name || '', price: it.price || '', note: it.note || '', copies: priceCopies(it), sold: !!it.sold }));
   if (withImg) { o.data.logo = S.logo || null; o.data.photo = S.photo || null; }
@@ -1734,7 +1886,15 @@ function applyImport(d) {
   KEYS_STR.forEach(k => pick(k, str(d[k], k === 'bio' ? 400 : 1000)));
   KEYS_BOOL.forEach(k => pick(k, typeof d[k] === 'boolean' ? d[k] : undefined));
   pick('mode', ['card', 'url'].includes(d.mode) ? d.mode : undefined);
-  pick('purpose', ['shop', 'biz', 'price'].includes(d.purpose) ? d.purpose : undefined);
+  pick('purpose', ['shop', 'biz', 'price', 'qrcard'].includes(d.purpose) ? d.purpose : undefined);
+  pick('qcSize', QC_SIZES.some(z => z.id === d.qcSize) ? d.qcSize : undefined);
+  pick('qcSrc', QC_SRCS.some(z => z.id === d.qcSrc) ? d.qcSrc : undefined);
+  pick('qcBand', QC_BANDS.some(z => z.id === d.qcBand) ? d.qcBand : undefined);
+  pick('qcColor', Number.isInteger(d.qcColor) && QC_COLORS[d.qcColor] ? d.qcColor : undefined);
+  ['qcUrl', 'qcTitle', 'qcSub', 'qcNote'].forEach(k => pick(k, typeof d[k] === 'string' ? d[k].slice(0, 400) : undefined));
+  pick('qcCopies', typeof d.qcCopies === 'string' || Number.isFinite(d.qcCopies) ? String(d.qcCopies).slice(0, 4) : undefined);
+  pick('qcBrand', typeof d.qcBrand === 'boolean' ? d.qcBrand : undefined);
+  if (d.qcFs && typeof d.qcFs === 'object') n.qcFs = Object.fromEntries(['title', 'brand', 'sub', 'qr'].map(k => [k, Number.isFinite(d.qcFs[k]) ? Math.max(50, Math.min(k === 'qr' ? 100 : 250, Math.round(d.qcFs[k]))) : 100]));
   pick('priceSize', PSIZES.some(p => p.id === d.priceSize) ? d.priceSize : undefined);
   pick('stand', STANDS.some(x => x.id === d.stand) ? d.stand : undefined);
   pick('priceOrient', ['land', 'port'].includes(d.priceOrient) ? d.priceOrient : undefined);
@@ -1757,7 +1917,7 @@ function applyImport(d) {
   pick('logoSize', Number.isFinite(d.logoSize) ? Math.max(12, Math.min(26, Math.round(d.logoSize))) : undefined);
   if (Array.isArray(d.links)) n.links = d.links.filter(l => l && typeof l === 'object').slice(0, MAX_LINKS).map(l => ({ label: str(l.label, 100) || '', url: str(l.url, 1000) || '' }));
   const img = v => typeof v === 'string' && /^data:image\/(png|jpeg|webp|gif|svg\+xml)[;,]/.test(v) ? v : (v === null ? null : undefined);
-  pick('logo', img(d.logo)); pick('photo', img(d.photo));
+  pick('logo', img(d.logo)); pick('photo', img(d.photo)); pick('qcImg', img(d.qcImg));
   S = n;
 }
 window.updJsonSize = () => { const kb = JSON.stringify(exportObj($('jsonImg').checked)).length / 1024; $('jsonSize').textContent = (kb < 1 ? '1KB未満' : '約' + Math.round(kb) + 'KB'); };
