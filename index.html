@@ -303,7 +303,30 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
   #print svg.marks{position:absolute;inset:0;width:210mm;height:297mm}
   .ph-empty span{display:none}
 }
+/* ---- 購入者向け導線：スマホ用ミニプレビュー・スタンドえらび ---- */
+.mini{display:none}
+.devpick{position:fixed;inset:0;z-index:50;background:rgba(40,32,24,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.devpick[hidden]{display:none}
+.devpick .box{background:var(--side);border-radius:14px;padding:22px 20px 18px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.devpick h2{margin:0 0 6px;font-size:16px}
+.devpick p{margin:0 0 14px;font-size:12px;line-height:1.6;color:var(--sub)}
+.devpick .seg{display:grid;grid-template-columns:1fr;gap:8px}
+.devpick .seg button{padding:13px 12px;font-size:14px;text-align:left}
+.devpick .seg button small{display:block;font-size:11px;font-weight:400;margin-top:2px;opacity:.75}
+.printsteps{margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:11.5px;line-height:1.7;color:var(--sub)}
+.printsteps b{color:var(--ink)}
+.printsteps ol{margin:4px 0 0;padding-left:18px}
+#moreOut summary{cursor:pointer;font-size:11px;color:var(--sub);padding:2px 0}
+#moreOut[open] summary{margin-bottom:8px}
 @media (max-width:760px){
+  .mini{display:flex;position:sticky;top:0;z-index:20;gap:10px;align-items:center;padding:8px 14px;background:var(--side);border-bottom:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+  .mini .thumb{height:66px;width:110px;flex:none;position:relative;overflow:hidden;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer}
+  .mini .thumb>*{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+  .mini .mini-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .mini .mini-t b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini .mini-t small{font-size:10.5px;color:var(--sub)}
+  .mini .mini-t a{font-size:11px;color:var(--acc)}
+  .mini .primary{padding:9px 12px;font-size:12px;white-space:nowrap}
   .app{grid-template-columns:1fr;height:auto;overflow:visible}
   aside{border-right:none}
   .scroll{overflow:visible}
@@ -319,6 +342,11 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     <div class="eyebrow">Marché QR Maker</div>
     <h1>オリジナルQRコードメイカー</h1>
   </header>
+  <div class="mini" id="mini" hidden>
+    <div class="thumb" id="miniThumb" title="タップで大きく見る"></div>
+    <div class="mini-t"><b id="miniTitle"></b><small id="miniSub"></small><a href="#" id="miniJump">全部のカードを見る ↓</a></div>
+    <button class="primary" id="miniAct">印刷</button>
+  </div>
   <div class="scroll">
     <p class="warn store-warn" id="storeWarn" hidden></p>
 
@@ -353,7 +381,8 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     </div></details>
 
     <details class="acc" data-sec="basic"><summary><h2>基本情報</h2><span class="sm" id="sm-basic"></span></summary><div class="acc-body">
-      <label class="f"><span id="brandLabel">屋号</span><input class="in" id="brand"></label>
+      <p class="warn" id="sampleNote" hidden style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1">いま入っているのは見本の店（atelier kinari）です。</span><button class="btn" id="clearSample" style="border-color:#d23c2a;color:#9b2415">見本を消して自分の店にする</button></p>
+<label class="f"><span id="brandLabel">屋号</span><input class="in" id="brand"></label>
       <label class="f" id="rowBio">一言（紹介文）<textarea class="in" id="bio" rows="2"></textarea></label>
       <label class="f" id="rowSns">SNS・連絡先（名刺に小さく印字）<input class="in" id="sns"></label>
     </div></details>
@@ -367,8 +396,8 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
     <details class="acc" id="secLinks" data-sec="links"><summary><h2>リンク（ページのボタンになります）</h2><span class="sm" id="sm-links"></span></summary><div class="acc-body">
       <div id="links" style="display:flex;flex-direction:column;gap:8px"></div>
       <button class="btn dash" id="addLink">＋ リンクを追加</button>
-      <label class="f">リンクページを公開した場所（このHTMLのURL）<input class="in" id="base" placeholder="https://your-site.netlify.app/"></label>
-      <p class="hint">このHTMLファイルをNetlify等に1つ置けば、それが全員共通の「表示ページ」になります。内容はURLそのものに詰めて入れるので、サーバーへの保存は不要。書き換えたらQRとNFCを作り直すだけです。</p>
+      <label class="f" id="rowBase">リンクページを公開した場所（このHTMLのURL）<input class="in" id="base" placeholder="https://your-site.netlify.app/"></label>
+      <p class="hint" id="baseHint">このHTMLファイルをNetlify等に1つ置けば、それが全員共通の「表示ページ」になります。内容はURLそのものに詰めて入れるので、サーバーへの保存は不要。書き換えたらQRとNFCを作り直すだけです。</p>
       <p class="warn" id="baseWarn" hidden></p>
     </div></details>
 
@@ -579,17 +608,30 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
   </div>
   <footer>
     <button class="primary" id="printBtn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6 M6 14h12v8H6z"/></svg><span id="printLabel">名刺を印刷（A4 10面）</span></button>
+    <div class="printsteps" id="printSteps"><b>きれいに刷るコツ</b><ol><li>印刷画面で「A4」「倍率100%（実際のサイズ）」「余白なし」</li><li id="printStepPaper">名刺用紙は <b>A-one 51072（F10A4-1）</b> の10面。普通紙に刷って切ってもOK</li><li id="printStepPhone">スマホなら「PDFで保存」→ コンビニのネットプリントでも刷れます</li></ol></div>
+    <button class="btn" id="share" hidden>連絡先を共有（AirDrop・LINEなど）</button>
+    <details id="moreOut"><summary>QRコードだけを保存・リンクページを確認</summary>
     <div class="grid3" id="dlGrid">
       <button class="btn" id="dlPng">QR PNG</button>
       <button class="btn" id="dlSvg">QR SVG</button>
       <button class="btn" id="copy">URLコピー</button>
     </div>
-    <button class="btn" id="share" hidden>連絡先を共有（AirDrop・LINEなど）</button>
-    <button class="btn" id="open">リンクページを開いて確認</button>
+    <button class="btn" id="open" style="width:100%;margin-top:8px">リンクページを開いて確認</button>
+    </details>
     <p class="toast" id="toast"></p>
   </footer>
 </aside>
 
+<div class="devpick" id="devPick" hidden><div class="box">
+  <h2>どのスタンドに立てますか？</h2>
+  <p>HEXA STAGE のスタンドに合うカードの大きさと、下の隠れる部分の余白を自動で合わせます。あとから「立てるスタンド」で変えられます。</p>
+  <div class="seg">
+    <button data-standpick="tag"><b>小さな値札スタンド</b><small>値札・商品札（名刺半分 55×45.5）</small></button>
+    <button data-standpick="qr"><b>QR決済＋名刺スタンド</b><small>PayPayなどの決済QR・SNSのカード（A7 74×105）</small></button>
+    <button data-standpick="card"><b>名刺スタンド</b><small>お店の名刺・ショップカード（91×55）</small></button>
+    <button data-standpick="none"><b>スタンドは使わない</b><small>名刺・値札を印刷するだけ</small></button>
+  </div>
+</div></div>
 <main>
   <div class="panel" id="pricePanel" hidden>
     <div class="panel-h"><b>プライスカード</b><span id="priceInfo"></span></div>
@@ -898,7 +940,7 @@ const DEF = {
   priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
   stand: 'none', standColor: '',
   qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcNfc: false, qcNfcText: 'スマホをかざしてもOK', qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
-  open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, pricedesign: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
+  standSet: false, open: { stand: true, basic: true, links: true, url: true, vcard: true, price: true, qc: true }, printX: 0, printY: 0, printMarks: false, printGuide: false
 };
 const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
 let S = JSON.parse(DEF0);
@@ -1389,15 +1431,39 @@ function renderStand() {
   $('standFit').hidden = f.ok;
   $('sm-stand') && ($('sm-stand').textContent = st.id === 'none' ? 'なし' : st.label + (standColorOf() ? '・' + standColorOf().label : ''));
   renderStandColor();
+  $('sampleNote').hidden = !isSample();
+  $('printStepPaper').innerHTML = (isPrice() || isQc()) ? 'A4の厚紙（はがき程度の厚さ）に刷って、カードの線で切ります。「トンボを刷る」を入れると切る目印が出ます' : '名刺用紙は <b>A-one 51072（F10A4-1）</b> の10面。普通紙に刷って切ってもOK';
+  const baseDefault = HOSTED && (!S.base || S.base === location.origin + location.pathname);
+  $('rowBase').hidden = $('baseHint').hidden = baseDefault;
 }
-$('standFit').onclick = () => {
-  const id = S.stand;
+function standFitApply() {
+  const id = S.stand; if (id === 'none') return;
   if (isQc()) Object.assign(S, id === 'card' ? { qcSize: 'a7' } : {});
   else if (isPrice()) Object.assign(S, id === 'tag' ? { priceSize: 'half', priceOrient: 'land' } : id === 'qr' ? { priceSize: 'a7', priceOrient: 'port' } : { priceSize: 'meishi', priceOrient: 'land' });
   else if (id === 'qr') S.layout = 'tall';
   else if (id === 'card') S.layout = 'std';
-  renderAll();
-};
+}
+$('standFit').onclick = () => { standFitApply(); renderAll(); };
+/* スタンドを決める（購入者の入口）：スタンドに合うモードとサイズまで一度に */
+const SAMPLE_BRAND = 'atelier kinari';
+const isSample = () => clean(S.brand) === SAMPLE_BRAND || (S.links || []).some(l => /atelier_kinari/.test(l.url || '')) || (S.priceItems || []).some(it => it.name === '真鍮リング');
+function setStand(id, { mode, color } = {}) {
+  if (!STANDS.some(x => x.id === id)) return;
+  S.stand = id; S.standSet = true;
+  if (['shop', 'biz', 'price', 'qrcard'].includes(mode)) S.purpose = mode;
+  else if (id === 'tag') S.purpose = 'price'; else if (id === 'qr') S.purpose = 'qrcard'; else if (id === 'card' && !['shop', 'biz'].includes(S.purpose)) S.purpose = 'shop';
+  if (color !== undefined && (color === '' || STAND_COLORS.some(c => c.id === color))) S.standColor = color;
+  standFitApply();
+}
+/* ?stand=tag|qr|card&color=<filaments.jsonのid>&mode=price|qrcard|shop|biz — スタンド同梱カードのQRから開いたとき */
+(() => {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('stand') && !q.has('mode')) return;
+  if (q.has('stand')) setStand(q.get('stand'), { mode: q.get('mode'), color: q.has('color') ? q.get('color') : undefined });
+  else if (['shop', 'biz', 'price', 'qrcard'].includes(q.get('mode'))) { S.purpose = q.get('mode'); S.standSet = true; }
+  ['stand', 'mode', 'color'].forEach(k => q.delete(k));
+  history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+})();
 function renderQcControls() {
   $('qcSizes').innerHTML = QC_SIZES.map(z => `<button data-qcsize="${z.id}" class="${S.qcSize === z.id ? 'on' : ''}">${z.label}</button>`).join('');
   $('qcSrcs').innerHTML = QC_SRCS.map(x => `<button class="opt${S.qcSrc === x.id ? ' on' : ''}" data-qcsrc="${x.id}"><b>${x.label}</b><span>${x.sub}</span></button>`).join('');
@@ -1643,7 +1709,7 @@ document.addEventListener('click', e => {
   if (ds.qcpre) { S.qcTitle = ds.qcpre; return renderAll(); }
   if (ds.pblank != null) return doPrint('cards', 'blank');
   if (ds.pprint != null) return doPrint('cards', +ds.pprint);
-  if (ds.stand) { S.stand = ds.stand; return renderAll(); }
+  if (ds.stand) { S.stand = ds.stand; S.standSet = true; return renderAll(); }
   if (ds.stcolor !== undefined) { S.standColor = ds.stcolor; return renderAll(); }
   if (ds.strec !== undefined) { const r = standRecs(standColorOf())[+ds.strec]; if (r) { S.bg = r.bg; S.tex = r.tex; S.ink = r.ink; if (isQc()) S.qcColor = r.qcColor; } return renderAll(); }
   if (ds.psize) { S.priceSize = ds.psize; return renderAll(); }
@@ -1663,7 +1729,7 @@ document.addEventListener('click', e => {
   if (ds.del) { S.links.splice(+ds.del, 1); return renderAll(); }
   if (ds.mv) { const [i, d] = ds.mv.split(',').map(Number), j = i + d; if (j >= 0 && j < S.links.length) { const a = S.links; [a[i], a[j]] = [a[j], a[i]]; } return renderAll(); }
 });
-['brand', 'bio', 'sns', 'url', 'qrLabel', 'base', ...VC_KEYS].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value; renderPreview(); }));
+['brand', 'bio', 'sns', 'url', 'qrLabel', 'base', ...VC_KEYS].forEach(k => $(k).addEventListener('input', e => { S[k] = e.target.value; renderPreview(); if (k === 'brand') $('sampleNote').hidden = !isSample(); }));
 /* remember which accordion panels are open */
 document.querySelectorAll('details.acc').forEach(d => d.addEventListener('toggle', () => { S.open = { ...(S.open || {}), [d.dataset.sec]: d.open }; save(); }));
 $('logoUrl').addEventListener('input', e => { S.logoUrl = e.target.value; clearTimeout(window._lt); window._lt = setTimeout(renderAll, 350); });
@@ -1936,6 +2002,34 @@ function syncPrintInfo() {
   $('printLabel').textContent = !nItems ? 'プライスカードを印刷' : `プライスカードを印刷（${priceExpanded().length}枚・${pg}ページ）`;
 }
 $('printBtn').onclick = () => doPrint('cards');
+$('devPick').addEventListener('click', e => { const b = e.target.closest('[data-standpick]'); if (!b) return; setStand(b.dataset.standpick); $('devPick').hidden = true; save(); renderAll(); });
+function maybeStandPick() { if (!S.standSet && !document.body.classList.contains('viewing')) $('devPick').hidden = false; }
+$('clearSample').onclick = () => {
+  if (!confirm('見本の屋号・紹介文・リンク・商品・連絡先を消します。よろしいですか？')) return;
+  Object.assign(S, { brand: '', bio: '', sns: '', url: '', qrLabel: '', links: [], priceItems: [], logo: null, logoUrl: '', photo: null, qcUrl: '', qcNote: '' });
+  VC_KEYS.forEach(k => { S[k] = ''; });
+  save(); renderAll(); $('brand').focus(); toast('見本を消しました。屋号から入れてください');
+};
+/* スマホ用ミニプレビュー：いま見えているパネルの1枚目を縮小して上に固定 */
+function updateMini() {
+  const panel = [...document.querySelectorAll('main .panel')].find(p => !p.hidden && p.querySelector('.card-holder'));
+  const src = panel && panel.querySelector('.card-holder');
+  const th = $('miniThumb'); th.innerHTML = '';
+  $('mini').hidden = !src;
+  if (!src) return;
+  const r = src.getBoundingClientRect(); if (!r.width || !r.height) { $('mini').hidden = true; return; }
+  const k = Math.min(110 / r.width, 66 / r.height), c = src.cloneNode(true);
+  c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+  c.style.width = r.width + 'px'; c.style.height = r.height + 'px'; c.style.transform = `scale(${k})`; c.style.margin = '0'; th.appendChild(c);
+  th.style.width = Math.round(r.width * k) + 'px';
+  const st = standOf();
+  $('miniTitle').textContent = clean(S.brand) || '（屋号が空です）';
+  $('miniSub').textContent = (panel.querySelector('.panel-h b') || {}).textContent + '・' + ((panel.querySelector('.panel-h span') || {}).textContent || '') + (st.id !== 'none' ? '・' + st.label : '');
+  $('miniAct').textContent = $('printBtn').textContent.trim().split('（')[0] || '印刷';
+}
+new MutationObserver(() => { clearTimeout(updateMini.t); updateMini.t = setTimeout(updateMini, 120); }).observe(document.querySelector('main'), { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'style'] });
+$('miniAct').onclick = () => $('printBtn').click();
+$('miniThumb').onclick = $('miniJump').onclick = e => { e.preventDefault(); const panel = [...document.querySelectorAll('main .panel')].find(p => !p.hidden); (panel || document.querySelector('main')).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 $('printCheck').onclick = () => doPrint('check');
 window.syncPrintCtl = function () {
   syncPrintInfo();
@@ -2081,7 +2175,7 @@ async function boot() {
     }
     return;
   }
-  renderAll();
+  renderAll(); maybeStandPick();
 }
 window.addEventListener('hashchange', () => location.reload());
 boot();
