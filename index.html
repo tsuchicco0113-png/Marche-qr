@@ -589,7 +589,7 @@ body.viewing #viewer .lp{min-height:100vh;background-attachment:fixed}
         <button class="btn" id="printCheck">位置確認シートを印刷（普通紙で）</button>
         <p class="hint">枠線と十字だけを刷ります。本番用紙に重ねて光に透かし、線がカードの切れ目に合うまで補正してください。</p>
       </div>
-      <label class="chk" id="priceEachRow"><input type="checkbox" id="priceEach"><span style="flex:1">商品ごとにシートを分ける</span><small id="priceEachNote"></small></label>
+      <label class="chk" id="priceEachRow"><input type="checkbox" id="priceEach"><span style="flex:1">同じ商品でシートを埋める（商品ごとに1シート）</span><small id="priceEachNote"></small></label>
       <label class="chk"><input type="checkbox" id="printGuide"><span style="flex:1">カードの枠線も刷る</span><small>試し刷り用</small></label>
       <label class="chk"><input type="checkbox" id="printMarks"><span style="flex:1">トンボを刷る</span><small>自分で断裁するとき</small></label>
       <p class="hint">印刷画面では「用紙サイズ：A4」「倍率：100%（実際のサイズ）」「余白：なし」を選んでください。</p>
@@ -936,7 +936,7 @@ const DEF = {
   purpose: 'shop', vcLast: '木成', vcFirst: '花子', vcLastKana: 'きなり', vcFirstKana: 'はなこ', vcTitle: '代表・デザイナー',
   vcTel: '090-1234-5678', vcEmail: 'hello@example.com', vcUrl: 'https://example.com', vcAdr: '', vcNote: '卸・委託販売のご相談を承っています',
   priceItems: [{ name: '真鍮リング', price: '2800', note: '天然石・フリーサイズ', copies: 0, sold: false }, { name: 'ピアス（ターコイズ）', price: '3200', note: '', copies: 0, sold: false }, { name: '刺繍ブローチ', price: '1800', note: '一点もの', copies: 0, sold: false }],
-  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: true, priceGuide: true, priceV: 2,
+  priceSize: 'meishi', priceOrient: 'land', priceW: 90, priceH: 60, priceLayout: 'center', priceUnit: 'yen', priceTax: 'in', priceFrame: true, priceShop: true, priceQr: false, priceEach: false, priceGuide: true, priceV: 3,
   priceFs: { name: 100, price: 100, note: 100, shop: 100, qr: 100 }, pricePos: null,
   stand: 'none', standColor: '',
   qcSize: 'a7', qcSrc: 'url', qcUrl: '', qcImg: null, qcBand: 'band', qcTitle: 'お支払いはこちら', qcColor: 1, qcSub: 'スマホで読み取ってください', qcNote: '', qcBrand: true, qcNfc: false, qcNfcText: 'スマホをかざしてもOK', qcCopies: '', qcFs: { title: 100, brand: 100, sub: 100, qr: 100 },
@@ -944,7 +944,7 @@ const DEF = {
 };
 const DEF0 = JSON.stringify(DEF);   // 初期値の写し（DEFの配列を直接いじらないように）
 let S = JSON.parse(DEF0);
-try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) { const D = JSON.parse(DEF0); S = { ...D, ...sv, priceFs: { ...D.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : D.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV === 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : D.priceItems, priceV: 2 }; } } catch (e) {}
+try { const sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) { const D = JSON.parse(DEF0); S = { ...D, ...sv, priceFs: { ...D.priceFs, ...(sv.priceFs || {}) }, links: Array.isArray(sv.links) ? sv.links : D.links, priceItems: Array.isArray(sv.priceItems) ? sv.priceItems.map(it => sv.priceV >= 2 ? it : { ...it, copies: it.copies === 1 ? 0 : it.copies }) : D.priceItems, priceV: 3 }; if (!(sv.priceV >= 3)) S.priceEach = false; } } catch (e) {}
 
 S.bgUrl = '';
 if (!['shop', 'biz', 'price', 'qrcard'].includes(S.purpose)) S.purpose = 'shop';
@@ -1328,14 +1328,14 @@ function linkPageHtml(c, imgBase) {
 function renderPriceControls() {
   $('priceItems').innerHTML = S.priceItems.map((it, i) => `<div class="linkrow"><div class="col">
       <input class="in" data-pi="${i}" data-k="name" placeholder="商品名" value="${esc(it.name)}">
-      <div style="display:flex;gap:4px"><input class="in" data-pi="${i}" data-k="price" placeholder="価格（例 2800）" inputmode="numeric" value="${esc(it.price)}" style="flex:1"><input class="in" data-pi="${i}" data-k="copies" type="number" min="1" max="100" value="${priceCopies(it) || ''}" placeholder="全面" title="刷る枚数（空欄＝シート全面）" aria-label="刷る枚数" style="width:70px"></div>
+      <div style="display:flex;gap:4px"><input class="in" data-pi="${i}" data-k="price" placeholder="価格（例 2800）" inputmode="numeric" value="${esc(it.price)}" style="flex:1"><input class="in" data-pi="${i}" data-k="copies" type="number" min="1" max="100" value="${priceCopies(it) || ''}" placeholder="${S.priceEach ? '全面' : '1'}" title="${S.priceEach ? '刷る枚数（空欄＝シート全面）' : '刷る枚数（空欄＝1枚）'}" aria-label="刷る枚数" style="width:70px"></div>
       <input class="in" data-pi="${i}" data-k="note" placeholder="補足（素材・サイズなど）" value="${esc(it.note)}">
       <label class="chk" style="font-size:12px"><input type="checkbox" data-pi="${i}" data-k="sold"${it.sold ? ' checked' : ''}><span>売り切れ表示</span></label>
     </div><button class="ib" data-pmv="${i},-1" aria-label="上へ">▲</button><button class="ib" data-pmv="${i},1" aria-label="下へ">▼</button><button class="ib x" data-pdel="${i}" aria-label="削除">×</button></div>`).join('');
   $('addPrice').disabled = S.priceItems.length >= MAX_PRICE;
   $('priceCopiesHint').textContent = S.priceEach
     ? '価格欄の右は刷る枚数です。空欄なら、その商品でシート全面（' + pricePer() + '枚）を埋めます。枚数を入れると、その枚数だけ刷ります。'
-    : '価格欄の右は刷る枚数です。空欄は1枚。商品を続けて並べて刷ります。';
+    : '価格欄の右は刷る枚数です。空欄は1枚。全部の商品を1枚ずつ、続けて1シートにまとめて刷ります（入りきらない分は次のページへ）。';
   $('priceCopiesHint').textContent += '「売り切れ表示」にすると、カードにSOLD OUTの印が入ります。';
   $('priceSizes').innerHTML = PSIZES.map(p => `<button data-psize="${p.id}" class="${S.priceSize === p.id ? 'on' : ''}">${p.label}</button>`).join('');
   const cu = S.priceSize === 'custom';
@@ -1997,7 +1997,7 @@ function syncPrintInfo() {
   $('printFmt2').textContent = meishi ? 'フォーマット F10A4-1' : `A4に ${g.cols}列×${g.rows}段`;
   $('printInfo').textContent = meishi ? '名刺サイズのミシン目入り用紙（91×55mm×10面）にそのまま刷れます。縦向きは90°回して刷ります。' : '普通紙や厚紙にA4へ均等に並べて刷ります。「トンボを刷る」を入れると、切り分けの目安になります。';
   const nItems = priceItemsClean().length, pg = pricePageCount();
-  $('priceEachNote').textContent = `1商品ごとに新しいA4`;
+  $('priceEachNote').textContent = S.priceEach ? `1商品ごとに新しいA4` : `オフ＝全商品を1枚ずつまとめて`;
   $('priceEach').checked = !!S.priceEach;
   $('printLabel').textContent = !nItems ? 'プライスカードを印刷' : `プライスカードを印刷（${priceExpanded().length}枚・${pg}ページ）`;
 }
